@@ -1,26 +1,228 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   ReferralFlow design tokens
+   ========================================================================== */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Core palette */
+  --rf-bg: #070a16;
+  --rf-surface: #10152b;
+  --rf-surface-2: #171d38;
+  --rf-magenta: #f72585;
+  --rf-purple: #8b5cf6;
+  --rf-blue: #2563eb;
+  --rf-cyan: #22d3ee;
+  --rf-success: #22c55e;
+  --rf-warning: #f59e0b;
+  --rf-danger: #ef4444;
+  --rf-text: #f8fafc;
+  --rf-text-muted: #94a3b8;
+
+  /* Semantic */
+  --background: var(--rf-bg);
+  --foreground: var(--rf-text);
+  --border: color-mix(in srgb, var(--rf-text) 10%, transparent);
+
+  /* Signature gradients */
+  --rf-gradient: linear-gradient(
+    135deg,
+    var(--rf-magenta) 0%,
+    var(--rf-purple) 45%,
+    var(--rf-blue) 75%,
+    var(--rf-cyan) 100%
+  );
+  --rf-gradient-soft: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--rf-magenta) 22%, transparent),
+    color-mix(in srgb, var(--rf-cyan) 22%, transparent)
+  );
+
+  --rf-radius: 1.25rem;
 }
 
+/* Expose tokens to Tailwind's utility system (v4 @theme) */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-surface: var(--rf-surface);
+  --color-surface-2: var(--rf-surface-2);
+  --color-magenta: var(--rf-magenta);
+  --color-purple: var(--rf-purple);
+  --color-brand-blue: var(--rf-blue);
+  --color-cyan: var(--rf-cyan);
+  --color-muted: var(--rf-text-muted);
+  --font-sans: var(--font-heebo), system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ==========================================================================
+   Base
+   ========================================================================== */
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-heebo), system-ui, sans-serif;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  /* Safe-area support for Android / iPhone notches */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Ambient background glows */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(60rem 60rem at 85% -10%, color-mix(in srgb, var(--rf-magenta) 16%, transparent), transparent 60%),
+    radial-gradient(50rem 50rem at 10% 10%, color-mix(in srgb, var(--rf-purple) 16%, transparent), transparent 55%),
+    radial-gradient(60rem 60rem at 50% 120%, color-mix(in srgb, var(--rf-blue) 14%, transparent), transparent 60%);
+  pointer-events: none;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--rf-magenta) 40%, transparent);
+  color: #fff;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--rf-purple) 40%, transparent);
+  border-radius: 999px;
+}
+
+/* ==========================================================================
+   Reusable component utilities
+   ========================================================================== */
+@layer components {
+  .glass {
+    background: color-mix(in srgb, var(--rf-surface) 70%, transparent);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid color-mix(in srgb, var(--rf-text) 8%, transparent);
+  }
+
+  .glass-elevated {
+    background: color-mix(in srgb, var(--rf-surface-2) 80%, transparent);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid color-mix(in srgb, var(--rf-text) 10%, transparent);
+  }
+
+  /* Card with an animated gradient border */
+  .gradient-border {
+    position: relative;
+    border-radius: var(--rf-radius);
+    background: color-mix(in srgb, var(--rf-surface) 80%, transparent);
+  }
+  .gradient-border::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: var(--rf-gradient);
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0.6;
+  }
+
+  .text-gradient {
+    background: var(--rf-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .btn-gradient {
+    background: var(--rf-gradient);
+    background-size: 200% 200%;
+    color: #fff;
+    box-shadow: 0 8px 30px color-mix(in srgb, var(--rf-magenta) 30%, transparent);
+    transition: background-position 0.4s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  }
+  .btn-gradient:hover {
+    background-position: 100% 100%;
+    box-shadow: 0 10px 40px color-mix(in srgb, var(--rf-purple) 40%, transparent);
+  }
+  .btn-gradient:active {
+    transform: translateY(1px) scale(0.99);
+  }
+
+  .glow {
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--rf-cyan) 20%, transparent),
+      0 0 40px color-mix(in srgb, var(--rf-cyan) 15%, transparent);
+  }
+
+  .focus-ring:focus-visible {
+    outline: 2px solid var(--rf-cyan);
+    outline-offset: 2px;
+  }
+}
+
+/* ==========================================================================
+   Animations
+   ========================================================================== */
+@keyframes rf-float {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  50% { transform: translateY(-24px) translateX(12px); }
+}
+@keyframes rf-float-slow {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(24px) scale(1.05); }
+}
+@keyframes rf-pulse-glow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+@keyframes rf-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-float { animation: rf-float 14s ease-in-out infinite; }
+.animate-float-slow { animation: rf-float-slow 18s ease-in-out infinite; }
+.animate-pulse-glow { animation: rf-pulse-glow 4s ease-in-out infinite; }
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--rf-surface-2) 60%, transparent) 25%,
+    color-mix(in srgb, var(--rf-text) 8%, transparent) 37%,
+    color-mix(in srgb, var(--rf-surface-2) 60%, transparent) 63%
+  );
+  background-size: 400% 100%;
+  animation: rf-shimmer 1.4s ease infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

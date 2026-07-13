@@ -1,0 +1,46 @@
+{
+  "name": "ReferralFlow · הפניות עבודה עם יובל",
+  "short_name": "ReferralFlow",
+  "description": "פלטפורמה פרטית לשליחת קורות חיים וניהול הפניות עבודה.",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#070A16",
+  "theme_color": "#070A16",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "שליחת קורות חיים",
+      "short_name": "שליחה",
+      "url": "/apply"
+    },
+    {
+      "name": "אזור ניהול",
+      "short_name": "ניהול",
+      "url": "/admin"
+    }
+  ]
+}
