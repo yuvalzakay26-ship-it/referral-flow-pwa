@@ -16,7 +16,7 @@ create type candidate_status as enum (
 
 create type eligibility_status as enum ('eligible', 'review', 'likely_existing');
 create type yes_no_unsure     as enum ('yes', 'no', 'unsure');
-create type bonus_status      as enum ('none', 'pending', 'received');
+create type bonus_status      as enum ('none', 'not_eligible', 'pending', 'received');
 create type job_type          as enum ('full_time', 'part_time', 'student', 'shifts', 'flexible');
 create type job_priority      as enum ('low', 'medium', 'high');
 create type job_status        as enum ('draft', 'published');
@@ -31,13 +31,17 @@ create table candidates (
   phone                       text not null,
   email                       text not null,
   city                        text not null,
+  linkedin_url                text,
+  whatsapp_number             text,
   professional_field          text not null,
-  current_role                text not null,
+  current_role                text not null default '',
   years_of_experience         int  not null default 0,
-  education                   text not null,
+  education                   text not null default '',
   study_year                  text,
   preferred_job_types         job_type[] not null default '{}',
   preferred_locations         text[]     not null default '{}',
+  preferred_job_categories    text[]     not null default '{}',
+  technical_skills            text[]     not null default '{}',
   professional_summary        text not null default '',
   cv_file_name                text,
   cv_storage_path             text,               -- path in the private bucket
@@ -46,13 +50,17 @@ create table candidates (
   contacted_recruiter_before  yes_no_unsure not null,
   eligibility_status          eligibility_status not null default 'review',
   source                      text not null default 'direct-link',
+  source_details              text not null default '',
+  date_received               date,
   status                      candidate_status not null default 'new',
   internal_notes              text not null default '',
   referral_date               date,
   referred_position           text,
+  general_category            text,
   follow_up_date              date,
   bonus_status                bonus_status not null default 'none',
   bonus_amount                numeric,
+  closure_reason              text,
   created_at                  timestamptz not null default now(),
   updated_at                  timestamptz not null default now()
 );
@@ -89,17 +97,19 @@ create index notes_candidate_idx on candidate_notes (candidate_id);
 -- jobs
 -- ---------------------------------------------------------------------------
 create table jobs (
-  id                uuid primary key default gen_random_uuid(),
-  title             text not null,
-  category          text not null,
-  location          text not null,
-  employment_type   job_type not null,
-  short_description text not null,
-  requirements      text[] not null default '{}',
-  priority          job_priority not null default 'medium',
-  status            job_status not null default 'draft',
-  application_link  text not null default '',
-  created_at        timestamptz not null default now()
+  id                 uuid primary key default gen_random_uuid(),
+  title              text not null,
+  category           text not null,
+  location           text not null,
+  employment_type    job_type not null,
+  short_description  text not null default '',
+  requirements       text[] not null default '{}',
+  priority           job_priority not null default 'medium',
+  status             job_status not null default 'draft',
+  internal_notes     text not null default '',
+  external_reference text not null default '',
+  is_active          boolean not null default true,
+  created_at         timestamptz not null default now()
 );
 
 -- ---------------------------------------------------------------------------
@@ -136,14 +146,15 @@ create table follow_ups (
 -- app_settings  (single row)
 -- ---------------------------------------------------------------------------
 create table app_settings (
-  id                     int primary key default 1 check (id = 1),
-  admin_display_name     text not null,
-  whatsapp_channel_url   text not null,
+  id                      int primary key default 1 check (id = 1),
+  app_name                text not null default 'ReferralFlow',
+  admin_display_name      text not null,
   default_whatsapp_number text not null,
-  disclaimer_text        text not null,
-  privacy_notice         text not null,
-  default_follow_up_days  int  not null default 7,
-  app_name               text not null default 'ReferralFlow'
+  whatsapp_channel_url    text not null,
+  default_job_post_ending text not null default '',
+  disclaimer_text         text not null default '',
+  default_follow_up_days   int  not null default 7,
+  default_bonus_amount    numeric
 );
 
 -- ---------------------------------------------------------------------------
@@ -200,14 +211,12 @@ create policy "admins manage settings"
 create policy "admins read admin_users"
   on admin_users for select using (is_admin());
 
--- Public visitors get NO direct table access. Candidate submissions must go
--- through a secure server action / Edge Function using the service role key,
--- which performs server-side validation before inserting.
--- (Do not add a public INSERT policy on `candidates`.)
-
--- Published jobs may be exposed publicly if desired:
--- create policy "public reads published jobs"
---   on jobs for select using (status = 'published');
+-- This is an ADMIN-ONLY system. There is no public candidate submission path.
+-- The public (anon) role must have NO access to any table here. All candidate
+-- creation and updates happen server-side while authenticated as the admin.
+-- (Never add a public INSERT/SELECT policy on `candidates` or `candidate_notes`.)
+-- Do NOT expose a public "published jobs" policy — job posts are shared manually
+-- by the administrator via WhatsApp, not served from a public endpoint.
 
 -- ===========================================================================
 -- Private CV storage bucket

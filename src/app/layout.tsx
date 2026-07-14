@@ -17,9 +17,10 @@ export const metadata: Metadata = {
     template: `%s · ${APP_NAME}`,
   },
   description:
-    "ReferralFlow — פלטפורמה פרטית לשליחת קורות חיים ולניהול הפניות עבודה. שליחת מועמדות לבדיקה והתאמה אפשרית דרך תוכנית הפניית עובדים.",
+    "ReferralFlow — מערכת ניהול פרטית (CRM) להפניות עובדים, לשימוש המנהל בלבד.",
   applicationName: APP_NAME,
   manifest: "/manifest.webmanifest",
+  robots: { index: false, follow: false },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -31,12 +32,6 @@ export const metadata: Metadata = {
       { url: "/favicon.ico" },
     ],
     apple: "/icons/apple-icon.png",
-  },
-  openGraph: {
-    title: `${APP_NAME} · ${APP_SUBTITLE}`,
-    description: "שליחת קורות חיים לבדיקה והתאמה אפשרית דרך תוכנית הפניית עובדים.",
-    type: "website",
-    locale: "he_IL",
   },
 };
 

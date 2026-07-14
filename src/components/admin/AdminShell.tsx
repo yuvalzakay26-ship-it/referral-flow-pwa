@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
+  UserPlus,
   MessageSquare,
   Briefcase,
   Settings,
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 import { Logo, LogoMark } from "@/components/ui/Logo";
 import { ADMIN_NAV } from "./AdminNav";
+import { MockModeBanner } from "./MockModeBanner";
 import { cn } from "@/lib/utils";
 import { isAuthed, logout } from "@/lib/auth";
 import { DEFAULT_SETTINGS } from "@/config/settings";
@@ -23,14 +25,24 @@ import { DEFAULT_SETTINGS } from "@/config/settings";
 const ICONS: Record<string, LucideIcon> = {
   LayoutDashboard,
   Users,
+  UserPlus,
   MessageSquare,
   Briefcase,
   Settings,
 };
 
-function isActive(pathname: string, href: string): boolean {
-  if (href === "/admin") return pathname === "/admin";
-  return pathname === href || pathname.startsWith(href + "/");
+/** The nav item whose href is the longest prefix of the current path is active. */
+function getActiveHref(pathname: string): string {
+  let best = "";
+  for (const item of ADMIN_NAV) {
+    if (
+      (pathname === item.href || pathname.startsWith(item.href + "/")) &&
+      item.href.length > best.length
+    ) {
+      best = item.href;
+    }
+  }
+  return best;
 }
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -70,6 +82,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     );
   }
 
+  const activeHref = getActiveHref(pathname);
+
   return (
     <div className="flex min-h-dvh">
       {/* Desktop sidebar */}
@@ -82,7 +96,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <nav className="flex flex-1 flex-col gap-1 px-3">
           {ADMIN_NAV.map((item) => {
             const Icon = ICONS[item.icon] ?? LayoutDashboard;
-            const active = isActive(pathname, item.href);
+            const active = activeHref === item.href;
             return (
               <Link
                 key={item.href}
@@ -128,12 +142,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               שלום, {DEFAULT_SETTINGS.admin_display_name} 👋
             </span>
           </div>
-          <Link href="/" className="text-xs text-[var(--rf-text-muted)] hover:text-[var(--rf-text)]">
-            לאתר הציבורי ↗
-          </Link>
+          <span className="text-xs text-[var(--rf-text-muted)]">
+            אזור ניהול פרטי
+          </span>
         </header>
 
-        <main className="flex-1 p-4 lg:p-8">{children}</main>
+        <main className="flex-1 p-4 lg:p-8">
+          <MockModeBanner />
+          {children}
+        </main>
       </div>
 
       {/* Mobile drawer */}
@@ -157,7 +174,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <nav className="flex flex-1 flex-col gap-1">
               {ADMIN_NAV.map((item) => {
                 const Icon = ICONS[item.icon] ?? LayoutDashboard;
-                const active = isActive(pathname, item.href);
+                const active = activeHref === item.href;
                 return (
                   <Link
                     key={item.href}

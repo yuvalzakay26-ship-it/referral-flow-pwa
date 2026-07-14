@@ -10,6 +10,9 @@ import {
   FileText,
   Smartphone,
   Download,
+  ShieldAlert,
+  Database,
+  Info,
 } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { InstallCard } from "@/components/admin/InstallCard";
@@ -19,6 +22,11 @@ import { Field, TextInput, TextArea } from "@/components/ui/Field";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { getSettings, updateSettings } from "@/services/settingsService";
 import { DEFAULT_SETTINGS } from "@/config/settings";
+import {
+  USE_MOCK_DATA,
+  NON_OFFICIAL_NOTICE,
+  MOCK_MODE_WARNING,
+} from "@/config/app";
 import type { AppSettings } from "@/types";
 
 export default function SettingsPage() {
@@ -53,7 +61,7 @@ export default function SettingsPage() {
       <div>
         <PageHeader
           title="הגדרות"
-          description="הגדרות כלליות של האפליקציה וההודעות."
+          description="הגדרות כלליות של המערכת וההודעות."
         />
         <div className="flex flex-col gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -74,7 +82,7 @@ export default function SettingsPage() {
     <div>
       <PageHeader
         title="הגדרות"
-        description="הגדרות כלליות של האפליקציה וההודעות."
+        description="הגדרות כלליות של המערכת, ההודעות והפוסטים."
         actions={
           <>
             <Button variant="ghost" size="md" onClick={handleReset}>
@@ -102,7 +110,7 @@ export default function SettingsPage() {
             <Settings2 size={18} className="text-[var(--rf-text-muted)]" />
           </CardHeader>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="שם האפליקציה" htmlFor="app_name">
+            <Field label="שם המערכת" htmlFor="app_name">
               <TextInput
                 id="app_name"
                 value={form.app_name}
@@ -133,6 +141,26 @@ export default function SettingsPage() {
                   update(
                     "default_follow_up_days",
                     Number.isNaN(n) ? form.default_follow_up_days : n,
+                  );
+                }}
+              />
+            </Field>
+            <Field
+              label="סכום בונוס ברירת מחדל (₪)"
+              htmlFor="default_bonus_amount"
+              hint="רשות — משמש כערך ברירת מחדל."
+            >
+              <TextInput
+                id="default_bonus_amount"
+                type="number"
+                min={0}
+                dir="ltr"
+                value={form.default_bonus_amount ?? ""}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  update(
+                    "default_bonus_amount",
+                    v === "" ? null : Number(v),
                   );
                 }}
               />
@@ -174,17 +202,30 @@ export default function SettingsPage() {
           </div>
         </Card>
 
-        {/* Public texts */}
+        {/* Job posts */}
         <Card>
           <CardHeader>
-            <CardTitle>טקסטים ציבוריים</CardTitle>
+            <CardTitle>פוסטים למשרות</CardTitle>
             <FileText size={18} className="text-[var(--rf-text-muted)]" />
           </CardHeader>
           <div className="flex flex-col gap-4">
             <Field
-              label="טקסט הבהרה"
+              label="שורת סיום לפוסט"
+              htmlFor="default_job_post_ending"
+              hint="נוסף לפוסטים שנוצרים לוואטסאפ (ללא קישור הגשה ציבורי)."
+            >
+              <TextArea
+                id="default_job_post_ending"
+                value={form.default_job_post_ending}
+                onChange={(e) =>
+                  update("default_job_post_ending", e.target.value)
+                }
+              />
+            </Field>
+            <Field
+              label="טקסט הבהרה ציבורי"
               htmlFor="disclaimer_text"
-              hint="מוצג למועמדים בעמוד השליחה ובאתר"
+              hint="נכלל בפוסטים המפורסמים לוואטסאפ."
             >
               <TextArea
                 id="disclaimer_text"
@@ -192,13 +233,38 @@ export default function SettingsPage() {
                 onChange={(e) => update("disclaimer_text", e.target.value)}
               />
             </Field>
-            <Field label="הודעת פרטיות" htmlFor="privacy_notice">
-              <TextArea
-                id="privacy_notice"
-                value={form.privacy_notice}
-                onChange={(e) => update("privacy_notice", e.target.value)}
-              />
-            </Field>
+          </div>
+        </Card>
+
+        {/* Mock mode + Supabase status */}
+        <Card>
+          <CardHeader>
+            <CardTitle>מצב נתונים וחיבור</CardTitle>
+            <Database size={18} className="text-[var(--rf-text-muted)]" />
+          </CardHeader>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between rounded-xl border border-white/8 bg-white/[0.02] px-4 py-3">
+              <span className="flex items-center gap-2 text-sm text-[var(--rf-text)]">
+                <Database size={16} className="text-[var(--rf-text-muted)]" />
+                חיבור Supabase
+              </span>
+              <span
+                className={
+                  USE_MOCK_DATA
+                    ? "rounded-full border border-amber-400/30 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-300"
+                    : "rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300"
+                }
+              >
+                {USE_MOCK_DATA ? "לא מחובר (מצב הדגמה)" : "מחובר"}
+              </span>
+            </div>
+            {USE_MOCK_DATA && (
+              <p className="flex items-start gap-2 rounded-xl border border-amber-400/25 bg-amber-500/10 px-4 py-3 text-sm leading-relaxed text-amber-100">
+                <ShieldAlert size={16} className="mt-0.5 flex-none" />
+                {MOCK_MODE_WARNING} ההתחברות הנוכחית היא לצורכי פיתוח בלבד ואינה
+                מאובטחת לייצור.
+              </p>
+            )}
           </div>
         </Card>
 
@@ -252,6 +318,17 @@ export default function SettingsPage() {
               ייצוא הנתונים יהיה זמין לאחר חיבור Supabase.
             </p>
           </div>
+        </Card>
+
+        {/* About / non-official notice */}
+        <Card>
+          <CardHeader>
+            <CardTitle>אודות</CardTitle>
+            <Info size={18} className="text-[var(--rf-text-muted)]" />
+          </CardHeader>
+          <p className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-[var(--rf-text-muted)]">
+            {NON_OFFICIAL_NOTICE}
+          </p>
         </Card>
       </div>
 

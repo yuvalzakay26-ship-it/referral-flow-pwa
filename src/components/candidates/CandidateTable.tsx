@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { ArrowUpDown, ChevronLeft } from "lucide-react";
-import { StatusBadge, EligibilityBadge } from "@/components/ui/Badge";
+import { Badge, StatusBadge, EligibilityBadge } from "@/components/ui/Badge";
 import { getSourceMeta } from "@/config/sources";
+import { getBonusMeta } from "@/config/bonus";
 import { formatDate } from "@/lib/utils";
 import type { Candidate } from "@/types";
 import type { SortKey } from "@/services/candidateService";
@@ -45,14 +46,19 @@ export function CandidateTable({ candidates, onSort }: Props) {
               <th className="px-4 py-3 font-medium">
                 <SortButton label="שם" active onClick={() => onSort("full_name")} />
               </th>
+              <th className="px-4 py-3 font-medium">טלפון</th>
               <th className="px-4 py-3 font-medium">תחום</th>
               <th className="px-4 py-3 font-medium">מקור</th>
               <th className="px-4 py-3 font-medium">זכאות</th>
               <th className="px-4 py-3 font-medium">
                 <SortButton label="סטטוס" active onClick={() => onSort("status")} />
               </th>
+              <th className="px-4 py-3 font-medium">בונוס</th>
               <th className="px-4 py-3 font-medium">
-                <SortButton label="תאריך" active onClick={() => onSort("created_at")} />
+                <SortButton label="מעקב" active onClick={() => onSort("follow_up_date")} />
+              </th>
+              <th className="px-4 py-3 font-medium">
+                <SortButton label="התקבל" active onClick={() => onSort("created_at")} />
               </th>
               <th className="px-4 py-3" />
             </tr>
@@ -74,6 +80,9 @@ export function CandidateTable({ candidates, onSort }: Props) {
                     {c.reference_number}
                   </p>
                 </td>
+                <td className="px-4 py-3 whitespace-nowrap text-[var(--rf-text-muted)]" dir="ltr">
+                  {c.phone}
+                </td>
                 <td className="px-4 py-3 text-[var(--rf-text-muted)]">
                   {c.professional_field}
                 </td>
@@ -86,8 +95,22 @@ export function CandidateTable({ candidates, onSort }: Props) {
                 <td className="px-4 py-3">
                   <StatusBadge status={c.status} size="sm" />
                 </td>
+                <td className="px-4 py-3">
+                  {c.bonus_status === "none" ? (
+                    <span className="text-[var(--rf-text-muted)]">—</span>
+                  ) : (
+                    <Badge
+                      label={getBonusMeta(c.bonus_status).label}
+                      className={getBonusMeta(c.bonus_status).badgeClass}
+                      size="sm"
+                    />
+                  )}
+                </td>
                 <td className="px-4 py-3 whitespace-nowrap text-[var(--rf-text-muted)]">
-                  {formatDate(c.created_at)}
+                  {formatDate(c.follow_up_date)}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap text-[var(--rf-text-muted)]">
+                  {formatDate(c.date_received ?? c.created_at)}
                 </td>
                 <td className="px-4 py-3">
                   <Link

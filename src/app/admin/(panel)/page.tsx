@@ -11,8 +11,13 @@ import {
   Hourglass,
   BadgeCheck,
   Copy,
+  Clock,
   CalendarClock,
   ArrowLeft,
+  UserPlus,
+  MessageSquare,
+  Briefcase,
+  type LucideIcon,
 } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { StatCard } from "@/components/admin/StatCard";
@@ -38,16 +43,25 @@ export default function DashboardPage() {
   return (
     <div>
       <PageHeader
-        title="לוח בקרה"
+        title="דשבורד"
         description="מבט-על על המועמדים, הסטטוסים והמקורות."
       />
 
+      {/* Quick shortcuts */}
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Shortcut href="/admin/candidates/new" icon={UserPlus} label="מועמד חדש" accent="var(--rf-magenta)" />
+        <Shortcut href="/admin/candidates" icon={Users} label="כל המועמדים" accent="var(--rf-cyan)" />
+        <Shortcut href="/admin/jobs" icon={Briefcase} label="משרה חדשה" accent="var(--rf-purple)" />
+        <Shortcut href="/admin/messages" icon={MessageSquare} label="הודעות מוכנות" accent="var(--rf-blue)" />
+      </div>
+
       {/* Primary stats */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         <StatCard label="סה״כ מועמדים" value={stats?.total ?? 0} icon={Users} accent="var(--rf-purple)" loading={loading} />
         <StatCard label="חדשים" value={stats?.new ?? 0} icon={Sparkles} accent="var(--rf-cyan)" loading={loading} />
+        <StatCard label="ממתין לבדיקה" value={stats?.pendingReview ?? 0} icon={Clock} accent="#3B82F6" loading={loading} />
         <StatCard label="הועברו לחברה" value={stats?.transferred ?? 0} icon={Send} accent="var(--rf-magenta)" loading={loading} />
-        <StatCard label="בתהליך" value={stats?.inProcess ?? 0} icon={Workflow} accent="var(--rf-blue)" loading={loading} />
+        <StatCard label="בתהליך גיוס" value={stats?.inRecruitment ?? 0} icon={Workflow} accent="var(--rf-blue)" loading={loading} />
         <StatCard label="התקבלו" value={stats?.hired ?? 0} icon={CheckCircle2} accent="#22C55E" loading={loading} />
         <StatCard label="בונוס בהמתנה" value={stats?.bonusPending ?? 0} icon={Hourglass} accent="#F59E0B" loading={loading} />
         <StatCard label="בונוס התקבל" value={stats?.bonusReceived ?? 0} icon={BadgeCheck} accent="#22C55E" loading={loading} />
@@ -164,5 +178,32 @@ export default function DashboardPage() {
         <InstallCard />
       </div>
     </div>
+  );
+}
+
+function Shortcut({
+  href,
+  icon: Icon,
+  label,
+  accent,
+}: {
+  href: string;
+  icon: LucideIcon;
+  label: string;
+  accent: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="glass flex items-center gap-3 rounded-2xl p-4 transition-colors hover:bg-white/[0.05] focus-ring"
+    >
+      <span
+        className="flex h-10 w-10 flex-none items-center justify-center rounded-xl"
+        style={{ background: `color-mix(in srgb, ${accent} 18%, transparent)` }}
+      >
+        <Icon size={20} style={{ color: accent }} />
+      </span>
+      <span className="text-sm font-semibold text-[var(--rf-text)]">{label}</span>
+    </Link>
   );
 }

@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Users, SlidersHorizontal } from "lucide-react";
+import Link from "next/link";
+import { Users, SlidersHorizontal, UserPlus } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { EmptyState } from "@/components/admin/EmptyState";
+import { Button } from "@/components/ui/Button";
 import { CandidateFilters } from "@/components/candidates/CandidateFilters";
 import { CandidateTable } from "@/components/candidates/CandidateTable";
 import { CandidateCard } from "@/components/candidates/CandidateCard";
@@ -22,6 +24,9 @@ const EMPTY_FILTERS: Filters = {
   field: "all",
   source: "all",
   eligibility: "all",
+  bonus: "all",
+  employmentType: "all",
+  followUp: "all",
   fromDate: "",
   toDate: "",
 };
@@ -60,6 +65,11 @@ export default function CandidatesPage() {
     );
   }
 
+  function changeSort(key: SortKey, dir: SortDir) {
+    setCandidates(null);
+    setSort({ key, dir });
+  }
+
   const count = candidates?.length ?? 0;
 
   return (
@@ -69,11 +79,21 @@ export default function CandidatesPage() {
         description={
           candidates ? `${count} מועמדים תואמים לסינון` : "טוען מועמדים..."
         }
+        actions={
+          <Button variant="gradient" asChild>
+            <Link href="/admin/candidates/new">
+              <UserPlus size={18} />
+              מועמד חדש
+            </Link>
+          </Button>
+        }
       />
 
       <CandidateFilters
         filters={filters}
         onChange={patchFilters}
+        sort={sort}
+        onSortChange={changeSort}
         onReset={() => {
           setCandidates(null);
           setFilters(EMPTY_FILTERS);

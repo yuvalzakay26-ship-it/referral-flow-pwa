@@ -69,6 +69,14 @@ export const DEFAULT_TEMPLATES: Record<MessageTemplateKey, MessageTemplate> = {
       "היי {{name}}, כל הכבוד ומזל טוב על הקבלה! שמחתי מאוד להיות חלק מהדרך. " +
       "מאחל/ת לך הצלחה גדולה בתפקיד החדש 🎉",
   },
+  bonus_not_eligible: {
+    key: "bonus_not_eligible",
+    title: "לא זכאי לבונוס הפניה",
+    body:
+      "היי {{name}}, שמחתי לעזור בתהליך. חשוב שאדע לעדכן שבמקרה זה ההפניה אינה עומדת " +
+      "בתנאי הזכאות לבונוס הפניית עובדים. זה לא משפיע על המשך התהליך שלך מול החברה. " +
+      "מאחל/ת לך הצלחה!",
+  },
 };
 
 export const TEMPLATE_LIST: MessageTemplate[] = Object.values(DEFAULT_TEMPLATES);
@@ -76,7 +84,9 @@ export const TEMPLATE_LIST: MessageTemplate[] = Object.values(DEFAULT_TEMPLATES)
 /** Available placeholder variables shown in the editor. */
 export const TEMPLATE_VARIABLES: { token: string; label: string }[] = [
   { token: "{{name}}", label: "שם המועמד/ת" },
+  { token: "{{field}}", label: "תחום מקצועי" },
+  { token: "{{jobTitle}}", label: "שם המשרה" },
+  { token: "{{followUpDate}}", label: "תאריך מעקב" },
   { token: "{{ref}}", label: "מספר פנייה" },
   { token: "{{position}}", label: "משרה / תחום" },
-  { token: "{{field}}", label: "תחום מקצועי" },
 ];

@@ -24,6 +24,8 @@ const previewCtx: TemplateContext = {
   ref: "RF-20260701-1042",
   position: "מפתחת Frontend",
   field: "פיתוח תוכנה",
+  jobTitle: "מפתחת Frontend",
+  followUpDate: "16/07/2026",
 };
 
 export default function MessagesPage() {

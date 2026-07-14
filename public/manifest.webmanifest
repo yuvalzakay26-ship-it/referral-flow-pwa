@@ -1,10 +1,10 @@
 {
   "name": "ReferralFlow · הפניות עבודה עם יובל",
   "short_name": "ReferralFlow",
-  "description": "פלטפורמה פרטית לשליחת קורות חיים וניהול הפניות עבודה.",
+  "description": "מערכת ניהול פרטית (CRM) להפניות עובדים — לשימוש המנהל בלבד.",
   "lang": "he",
   "dir": "rtl",
-  "start_url": "/",
+  "start_url": "/admin",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
@@ -33,13 +33,18 @@
   ],
   "shortcuts": [
     {
-      "name": "שליחת קורות חיים",
-      "short_name": "שליחה",
-      "url": "/apply"
+      "name": "מועמד חדש",
+      "short_name": "מועמד חדש",
+      "url": "/admin/candidates/new"
     },
     {
-      "name": "אזור ניהול",
-      "short_name": "ניהול",
+      "name": "מועמדים",
+      "short_name": "מועמדים",
+      "url": "/admin/candidates"
+    },
+    {
+      "name": "דשבורד",
+      "short_name": "דשבורד",
       "url": "/admin"
     }
   ]

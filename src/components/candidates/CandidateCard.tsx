@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronLeft, MapPin, Briefcase } from "lucide-react";
-import { StatusBadge, EligibilityBadge } from "@/components/ui/Badge";
+import { ChevronLeft, Phone, Briefcase, CalendarClock } from "lucide-react";
+import { Badge, StatusBadge, EligibilityBadge } from "@/components/ui/Badge";
 import { getSourceMeta } from "@/config/sources";
+import { getBonusMeta } from "@/config/bonus";
 import { formatDate } from "@/lib/utils";
 import type { Candidate } from "@/types";
 
@@ -30,20 +31,33 @@ export function CandidateCard({ candidate: c }: { candidate: Candidate }) {
           <Briefcase size={13} />
           {c.professional_field}
         </span>
-        <span className="inline-flex items-center gap-1">
-          <MapPin size={13} />
-          {c.city}
+        <span className="inline-flex items-center gap-1" dir="ltr">
+          <Phone size={13} />
+          {c.phone}
         </span>
+        {c.follow_up_date && (
+          <span className="inline-flex items-center gap-1">
+            <CalendarClock size={13} />
+            {formatDate(c.follow_up_date)}
+          </span>
+        )}
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <StatusBadge status={c.status} size="sm" />
         <EligibilityBadge status={c.eligibility_status} size="sm" />
+        {c.bonus_status !== "none" && (
+          <Badge
+            label={`בונוס: ${getBonusMeta(c.bonus_status).label}`}
+            className={getBonusMeta(c.bonus_status).badgeClass}
+            size="sm"
+          />
+        )}
       </div>
 
       <div className="mt-3 flex items-center justify-between border-t border-white/5 pt-2.5 text-xs text-[var(--rf-text-muted)]">
         <span>{getSourceMeta(c.source).label}</span>
-        <span>{formatDate(c.created_at)}</span>
+        <span>התקבל {formatDate(c.date_received ?? c.created_at)}</span>
       </div>
     </Link>
   );

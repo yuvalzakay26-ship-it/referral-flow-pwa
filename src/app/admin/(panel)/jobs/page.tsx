@@ -6,10 +6,13 @@ import {
   Briefcase,
   X,
   Pencil,
-  Trash2,
+  Copy,
+  Archive,
+  ArchiveRestore,
   MapPin,
   FolderTree,
   Clock,
+  MessageCircle,
 } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { EmptyState } from "@/components/admin/EmptyState";
@@ -18,17 +21,20 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { Field, TextInput, SelectInput, TextArea } from "@/components/ui/Field";
-import {
-  JOB_TYPE_LIST,
-  getJobTypeLabel,
-} from "@/config/jobTypes";
+import { JOB_TYPE_LIST, getJobTypeLabel } from "@/config/jobTypes";
 import {
   listJobs,
   createJob,
   updateJob,
-  deleteJob,
 } from "@/services/jobService";
-import type { Job, JobType, JobPriority, JobStatus } from "@/types";
+import { getSettings } from "@/services/settingsService";
+import type {
+  Job,
+  JobType,
+  JobPriority,
+  JobStatus,
+  AppSettings,
+} from "@/types";
 
 // --- Local option lists -----------------------------------------------------
 
@@ -80,27 +86,33 @@ const STATUS_META: Record<JobStatus, { label: string; badgeClass: string }> = {
   },
 };
 
-// --- WhatsApp post formatter ------------------------------------------------
+// --- WhatsApp post formatter (no public application-form link) ---------------
 
-function buildWhatsappPost(job: Job): string {
-  const requirements = job.requirements
-    .map((req) => `- ${req}`)
-    .join("\n");
-  return [
+function buildWhatsappPost(job: Job, settings: AppSettings): string {
+  const requirements = job.requirements.map((req) => `- ${req}`).join("\n");
+  const lines = [
     `🚀 *${job.title}*`,
     `📁 ${job.category}`,
-    `📍 ${job.location}`,
+    job.location ? `📍 ${job.location}` : "",
     `🕒 ${getJobTypeLabel(job.employment_type)}`,
     "",
     job.short_description,
     "",
-    "*דרישות:*",
-    requirements,
-    "",
-    `🔗 להגשה: ${job.application_link}`,
-    "",
-    "(המשרה מפורסמת דרך תוכנית הפניית עובדים)",
-  ].join("\n");
+  ];
+  if (requirements) {
+    lines.push("*דרישות:*", requirements, "");
+  }
+  if (settings.default_job_post_ending) {
+    lines.push(settings.default_job_post_ending);
+  }
+  if (settings.disclaimer_text) {
+    lines.push("", settings.disclaimer_text);
+  }
+  return lines.filter((l, i, arr) => !(l === "" && arr[i - 1] === "")).join("\n");
+}
+
+function shareWhatsappLink(text: string): string {
+  return `https://wa.me/?text=${encodeURIComponent(text)}`;
 }
 
 // --- Form state -------------------------------------------------------------
@@ -114,7 +126,8 @@ interface FormState {
   status: JobStatus;
   short_description: string;
   requirements: string;
-  application_link: string;
+  internal_notes: string;
+  external_reference: string;
 }
 
 function emptyForm(): FormState {
@@ -127,7 +140,8 @@ function emptyForm(): FormState {
     status: "draft",
     short_description: "",
     requirements: "",
-    application_link: "",
+    internal_notes: "",
+    external_reference: "",
   };
 }
 
@@ -141,7 +155,8 @@ function formFromJob(job: Job): FormState {
     status: job.status,
     short_description: job.short_description,
     requirements: job.requirements.join("\n"),
-    application_link: job.application_link,
+    internal_notes: job.internal_notes,
+    external_reference: job.external_reference,
   };
 }
 
@@ -156,7 +171,9 @@ function parseRequirements(raw: string): string[] {
 
 export default function JobsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [settings, setSettings] = useState<AppSettings | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showArchived, setShowArchived] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
@@ -169,12 +186,12 @@ export default function JobsPage() {
     setLoading(false);
   }
 
-  // Initial load — active flag avoids synchronous setState in the effect.
   useEffect(() => {
     let active = true;
-    listJobs().then((data) => {
+    Promise.all([listJobs(), getSettings()]).then(([data, s]) => {
       if (!active) return;
       setJobs(data);
+      setSettings(s);
       setLoading(false);
     });
     return () => {
@@ -200,8 +217,25 @@ export default function JobsPage() {
     setFormOpen(false);
   }
 
-  async function handleDelete(id: string) {
-    await deleteJob(id);
+  async function handleArchiveToggle(job: Job) {
+    await updateJob(job.id, { is_active: !job.is_active });
+    await refresh();
+  }
+
+  async function handleDuplicate(job: Job) {
+    await createJob({
+      title: `${job.title} (עותק)`,
+      category: job.category,
+      location: job.location,
+      employment_type: job.employment_type,
+      short_description: job.short_description,
+      requirements: [...job.requirements],
+      priority: job.priority,
+      status: "draft",
+      internal_notes: job.internal_notes,
+      external_reference: job.external_reference,
+      is_active: true,
+    });
     await refresh();
   }
 
@@ -221,7 +255,11 @@ export default function JobsPage() {
       requirements: parseRequirements(form.requirements),
       priority: form.priority,
       status: form.status,
-      application_link: form.application_link.trim(),
+      internal_notes: form.internal_notes.trim(),
+      external_reference: form.external_reference.trim(),
+      is_active: editingId
+        ? jobs.find((j) => j.id === editingId)?.is_active ?? true
+        : true,
     };
     if (editingId) {
       await updateJob(editingId, payload);
@@ -233,10 +271,7 @@ export default function JobsPage() {
     await refresh();
   }
 
-  function updateField<K extends keyof FormState>(
-    key: K,
-    value: FormState[K],
-  ) {
+  function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
@@ -247,12 +282,25 @@ export default function JobsPage() {
     </Button>
   );
 
+  const visibleJobs = jobs.filter((j) => showArchived || j.is_active);
+
   return (
     <div>
       <PageHeader
         title="משרות"
-        description="ניהול משרות לפרסום בערוץ הוואטסאפ."
-        actions={createButton}
+        description="ניהול פנימי של משרות ויצירת פוסטים מוכנים לוואטסאפ (ללא קישור הגשה ציבורי)."
+        actions={
+          <>
+            <Button
+              variant="ghost"
+              onClick={() => setShowArchived((v) => !v)}
+            >
+              <Archive size={16} />
+              {showArchived ? "הסתרת ארכיון" : "הצגת ארכיון"}
+            </Button>
+            {createButton}
+          </>
+        }
       />
 
       {loading ? (
@@ -264,17 +312,22 @@ export default function JobsPage() {
             />
           ))}
         </div>
-      ) : jobs.length === 0 ? (
+      ) : visibleJobs.length === 0 ? (
         <EmptyState
           icon={Briefcase}
           title="אין משרות עדיין"
-          description="צרו משרה ראשונה כדי לשתף בערוץ."
+          description="צרו משרה ראשונה כדי להכין פוסט לשיתוף בערוץ."
           action={createButton}
         />
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
-          {jobs.map((job) => (
-            <Card key={job.id} className="flex flex-col gap-4">
+          {visibleJobs.map((job) => (
+            <Card
+              key={job.id}
+              className={`flex flex-col gap-4 ${
+                job.is_active ? "" : "opacity-60"
+              }`}
+            >
               <div className="flex flex-col gap-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge
@@ -285,6 +338,12 @@ export default function JobsPage() {
                     label={STATUS_META[job.status].label}
                     className={STATUS_META[job.status].badgeClass}
                   />
+                  {!job.is_active && (
+                    <Badge
+                      label="בארכיון"
+                      className="bg-zinc-500/15 text-zinc-400 border-zinc-400/30"
+                    />
+                  )}
                 </div>
 
                 <h3 className="text-lg font-bold text-[var(--rf-text)]">
@@ -296,10 +355,12 @@ export default function JobsPage() {
                     <FolderTree size={15} />
                     {job.category}
                   </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <MapPin size={15} />
-                    {job.location}
-                  </span>
+                  {job.location && (
+                    <span className="inline-flex items-center gap-1.5">
+                      <MapPin size={15} />
+                      {job.location}
+                    </span>
+                  )}
                   <span className="inline-flex items-center gap-1.5">
                     <Clock size={15} />
                     {getJobTypeLabel(job.employment_type)}
@@ -324,24 +385,61 @@ export default function JobsPage() {
                     </ul>
                   </div>
                 )}
+
+                {job.internal_notes && (
+                  <p className="rounded-lg border border-amber-400/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-200/80">
+                    הערה פנימית: {job.internal_notes}
+                  </p>
+                )}
               </div>
 
               <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-white/8 pt-4">
-                <CopyButton
-                  value={buildWhatsappPost(job)}
-                  label="העתקת פוסט לוואטסאפ"
-                />
+                {settings && (
+                  <>
+                    <CopyButton
+                      value={buildWhatsappPost(job, settings)}
+                      label="העתקת פוסט"
+                    />
+                    <Button variant="outline" size="sm" asChild>
+                      <a
+                        href={shareWhatsappLink(buildWhatsappPost(job, settings))}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <MessageCircle size={15} />
+                        וואטסאפ
+                      </a>
+                    </Button>
+                  </>
+                )}
                 <Button variant="ghost" size="sm" onClick={() => openEdit(job)}>
                   <Pencil size={15} />
                   עריכה
                 </Button>
                 <Button
-                  variant="danger"
+                  variant="ghost"
                   size="sm"
-                  onClick={() => handleDelete(job.id)}
+                  onClick={() => handleDuplicate(job)}
                 >
-                  <Trash2 size={15} />
-                  מחיקה
+                  <Copy size={15} />
+                  שכפול
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleArchiveToggle(job)}
+                >
+                  {job.is_active ? (
+                    <>
+                      <Archive size={15} />
+                      ארכיון
+                    </>
+                  ) : (
+                    <>
+                      <ArchiveRestore size={15} />
+                      שחזור
+                    </>
+                  )}
                 </Button>
               </div>
             </Card>
@@ -482,15 +580,27 @@ export default function JobsPage() {
                 />
               </Field>
 
-              <Field label="קישור להגשה" htmlFor="job-link">
+              <Field
+                label="הערות פנימיות"
+                htmlFor="job-notes"
+                hint="לא נכללות בפוסט המפורסם."
+              >
+                <TextArea
+                  id="job-notes"
+                  value={form.internal_notes}
+                  onChange={(e) => updateField("internal_notes", e.target.value)}
+                  placeholder="לשימוש פנימי בלבד…"
+                />
+              </Field>
+
+              <Field label="אסמכתא חיצונית (רשות)" htmlFor="job-ref">
                 <TextInput
-                  id="job-link"
-                  dir="ltr"
-                  value={form.application_link}
+                  id="job-ref"
+                  value={form.external_reference}
                   onChange={(e) =>
-                    updateField("application_link", e.target.value)
+                    updateField("external_reference", e.target.value)
                   }
-                  placeholder="https://"
+                  placeholder="לדוגמה: מספר משרה פנימי"
                 />
               </Field>
 

@@ -76,6 +76,27 @@ export function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+/**
+ * Normalize an Israeli phone number to a canonical local form (leading 0, no
+ * separators) for reliable comparison — e.g. "+972 52-123-4567" -> "0521234567".
+ * Returns "" when there are no digits.
+ */
+export function normalizePhone(phone: string): string {
+  const digits = (phone ?? "").replace(/\D/g, "");
+  if (!digits) return "";
+  if (digits.startsWith("972")) return "0" + digits.slice(3);
+  if (digits.startsWith("0")) return digits;
+  return digits;
+}
+
+/** Pretty Israeli phone format: "0521234567" -> "052-1234567". */
+export function formatIsraeliPhone(phone: string): string {
+  const n = normalizePhone(phone);
+  if (/^0\d{9}$/.test(n)) return `${n.slice(0, 3)}-${n.slice(3)}`;
+  if (/^0\d{8}$/.test(n)) return `${n.slice(0, 2)}-${n.slice(2)}`;
+  return phone;
+}
+
 /** Normalize an Israeli phone number to international format for wa.me links. */
 export function toWhatsAppNumber(phone: string): string {
   const digits = phone.replace(/\D/g, "");

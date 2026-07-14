@@ -6,9 +6,10 @@ export interface AdminNavItem {
 }
 
 export const ADMIN_NAV: AdminNavItem[] = [
-  { href: "/admin", label: "לוח בקרה", icon: "LayoutDashboard" },
+  { href: "/admin", label: "דשבורד", icon: "LayoutDashboard" },
   { href: "/admin/candidates", label: "מועמדים", icon: "Users" },
-  { href: "/admin/messages", label: "תבניות הודעה", icon: "MessageSquare" },
+  { href: "/admin/candidates/new", label: "מועמד חדש", icon: "UserPlus" },
   { href: "/admin/jobs", label: "משרות", icon: "Briefcase" },
+  { href: "/admin/messages", label: "הודעות מוכנות", icon: "MessageSquare" },
   { href: "/admin/settings", label: "הגדרות", icon: "Settings" },
 ];

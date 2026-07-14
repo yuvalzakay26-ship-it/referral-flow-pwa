@@ -10,6 +10,7 @@ import {
   MapPin,
   Mail,
   Phone,
+  ExternalLink,
   GraduationCap,
   FileText,
   Radio,
@@ -18,12 +19,15 @@ import {
   StickyNote,
   Award,
   CalendarClock,
+  Pencil,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
-import { StatusBadge, EligibilityBadge } from "@/components/ui/Badge";
+import { Badge, StatusBadge, EligibilityBadge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { CandidateActions } from "@/components/candidates/CandidateActions";
+import { CandidateForm } from "@/components/candidates/CandidateForm";
 import { StatusTimeline } from "@/components/candidates/StatusTimeline";
 import { NotesPanel } from "@/components/candidates/NotesPanel";
 import {
@@ -33,6 +37,7 @@ import {
 } from "@/services/candidateService";
 import { getSourceMeta } from "@/config/sources";
 import { getJobTypeLabel } from "@/config/jobTypes";
+import { getBonusMeta } from "@/config/bonus";
 import { ELIGIBILITY_QUESTIONS, YES_NO_UNSURE_LABELS } from "@/config/eligibility";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import type {
@@ -72,6 +77,7 @@ export default function CandidateDetailsPage() {
   );
   const [history, setHistory] = useState<CandidateStatusHistory[]>([]);
   const [notes, setNotes] = useState<CandidateNote[]>([]);
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     getCandidate(id).then(setCandidate);
@@ -82,6 +88,12 @@ export default function CandidateDetailsPage() {
   function handleUpdated(updated: Candidate) {
     setCandidate(updated);
     getStatusHistory(id).then(setHistory);
+  }
+
+  function handleSaved(updated: Candidate) {
+    setCandidate(updated);
+    getStatusHistory(id).then(setHistory);
+    setEditing(false);
   }
 
   if (candidate === undefined) {
@@ -135,11 +147,26 @@ export default function CandidateDetailsPage() {
             <StatusBadge status={c.status} />
           </div>
           <p className="mt-1 text-sm text-[var(--rf-text-muted)]">
-            {c.reference_number} · נשלח ב-{formatDate(c.created_at)}
+            {c.reference_number} · התקבל ב-
+            {formatDate(c.date_received ?? c.created_at)}
           </p>
         </div>
+        {!editing && (
+          <Button variant="gradient" onClick={() => setEditing(true)}>
+            <Pencil size={16} />
+            עריכת פרטים
+          </Button>
+        )}
       </div>
 
+      {editing ? (
+        <CandidateForm
+          mode="edit"
+          initial={c}
+          onSaved={handleSaved}
+          onCancel={() => setEditing(false)}
+        />
+      ) : (
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Main column */}
         <div className="flex flex-col gap-4 lg:col-span-2">
@@ -153,6 +180,26 @@ export default function CandidateDetailsPage() {
                 <Row icon={Phone} label="טלפון" value={<span dir="ltr">{c.phone}</span>} />
                 <Row icon={Mail} label="אימייל" value={<span dir="ltr">{c.email}</span>} />
                 <Row icon={MapPin} label="עיר / אזור" value={c.city} />
+                {c.whatsapp_number && c.whatsapp_number !== c.phone && (
+                  <Row label="וואטסאפ" value={<span dir="ltr">{c.whatsapp_number}</span>} />
+                )}
+                {c.linkedin_url && (
+                  <Row
+                    icon={ExternalLink}
+                    label="LinkedIn"
+                    value={
+                      <a
+                        href={c.linkedin_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        dir="ltr"
+                        className="text-[var(--rf-cyan)] hover:underline"
+                      >
+                        קישור
+                      </a>
+                    }
+                  />
+                )}
               </div>
             </Card>
 
@@ -196,6 +243,18 @@ export default function CandidateDetailsPage() {
                   ))}
                 </div>
               </div>
+              {c.technical_skills && c.technical_skills.length > 0 && (
+                <div>
+                  <p className="mb-1.5 text-xs text-[var(--rf-text-muted)]">כישורים / מילות מפתח</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {c.technical_skills.map((s) => (
+                      <span key={s} className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-[var(--rf-text)]">
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
               {c.professional_summary && (
                 <div>
                   <p className="mb-1.5 text-xs text-[var(--rf-text-muted)]">תקציר מקצועי</p>
@@ -236,17 +295,30 @@ export default function CandidateDetailsPage() {
               </CardHeader>
               <div className="divide-y divide-white/5">
                 <Row icon={Radio} label="מקור" value={getSourceMeta(c.source).label} />
+                {c.source_details && (
+                  <Row label="פרטי מקור" value={c.source_details} />
+                )}
                 <Row
                   icon={FileText}
                   label="קורות חיים"
                   value={c.cv_file_name ?? "לא צורף"}
                 />
-                <Row label="הועבר לתפקיד" value={c.referred_position} />
+                <Row label="משרה רלוונטית" value={c.referred_position} />
+                {c.general_category && (
+                  <Row label="קטגוריה כללית" value={c.general_category} />
+                )}
                 <Row icon={CalendarClock} label="תאריך הפניה" value={formatDate(c.referral_date)} />
                 <Row icon={CalendarClock} label="מעקב" value={formatDate(c.follow_up_date)} />
-                <Row icon={Award} label="סטטוס בונוס" value={bonusLabel(c.bonus_status)} />
+                <Row
+                  icon={Award}
+                  label="סטטוס בונוס"
+                  value={<Badge label={getBonusMeta(c.bonus_status).label} className={getBonusMeta(c.bonus_status).badgeClass} size="sm" />}
+                />
                 {c.bonus_amount != null && (
                   <Row label="סכום בונוס" value={formatCurrency(c.bonus_amount)} />
+                )}
+                {c.closure_reason && (
+                  <Row label="סיבת סגירה" value={c.closure_reason} />
                 )}
               </div>
             </Card>
@@ -283,17 +355,7 @@ export default function CandidateDetailsPage() {
           </Card>
         </div>
       </div>
+      )}
     </div>
   );
-}
-
-function bonusLabel(status: Candidate["bonus_status"]): string {
-  switch (status) {
-    case "pending":
-      return "בהמתנה";
-    case "received":
-      return "התקבל";
-    default:
-      return "אין";
-  }
 }

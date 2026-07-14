@@ -18,7 +18,9 @@ export const MOCK_JOBS: Job[] = [
     ],
     priority: "high",
     status: "published",
-    application_link: "https://example.com/apply/fullstack",
+    internal_notes: "עדיפות גבוהה — לוודא זמינות לראיון טכני.",
+    external_reference: "",
+    is_active: true,
     created_at: "2026-07-01T09:00:00.000Z",
   },
   {
@@ -37,7 +39,9 @@ export const MOCK_JOBS: Job[] = [
     ],
     priority: "medium",
     status: "published",
-    application_link: "https://example.com/apply/soc",
+    internal_notes: "",
+    external_reference: "",
+    is_active: true,
     created_at: "2026-06-28T11:00:00.000Z",
   },
   {
@@ -56,7 +60,9 @@ export const MOCK_JOBS: Job[] = [
     ],
     priority: "low",
     status: "draft",
-    application_link: "https://example.com/apply/qa-student",
+    internal_notes: "טיוטה — להשלים פרטים לפני פרסום.",
+    external_reference: "",
+    is_active: true,
     created_at: "2026-07-05T08:30:00.000Z",
   },
 ];

@@ -4,7 +4,9 @@ import { store, delay } from "./store";
 export interface DashboardStats {
   total: number;
   new: number;
+  pendingReview: number;
   transferred: number;
+  inRecruitment: number;
   inProcess: number;
   hired: number;
   bonusPending: number;
@@ -58,7 +60,9 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   return delay({
     total: c.length,
     new: count((x) => x.status === "new"),
+    pendingReview: count((x) => x.status === "pending_review"),
     transferred: count((x) => x.status === "transferred"),
+    inRecruitment: count((x) => x.status === "in_recruitment"),
     inProcess: count((x) => IN_PROCESS.includes(x.status)),
     hired: count(
       (x) =>

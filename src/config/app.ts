@@ -24,18 +24,30 @@ export const WHATSAPP_NUMBER =
 
 export const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "admin@referralflow.local";
 
-/** Public-facing legal / honesty copy reused across the app. */
+/**
+ * Disclaimer appended to generated WhatsApp job posts. Honest language — no
+ * promise of a response, interview, acceptance or bonus.
+ */
 export const DISCLAIMER_TEXT =
-  "המועמדות מועברת לבדיקה בלבד. ההתאמה והמשך התהליך נקבעים על ידי צוותי הגיוס, ואין התחייבות לראיון או לקבלה.";
+  "הפרסום נעשה במסגרת תוכנית הפניית עובדים. אין התחייבות לחזרה, לראיון או לקבלה.";
 
+/** Configurable closing line for generated job posts (no public form link). */
+export const JOB_POST_ENDING =
+  "לשליחת קורות חיים ופרטים, ניתן לפנות אליי בהודעה פרטית.";
+
+/** Shown privately in settings/about — this is NOT an official company system. */
 export const NON_OFFICIAL_NOTICE =
-  "אתר זה הוא כלי פרטי לניהול הפניות עובדים ואינו אתר רשמי של NESS Technologies, Intel או כל חברה אחרת. אין באמור כאן משום ייצוג רשמי מטעם חברה כלשהי.";
+  "המערכת היא כלי ניהול פרטי ואינה מערכת רשמית של NESS Technologies או Intel.";
 
-export const PRIVACY_NOTICE =
-  "הפרטים וקורות החיים שתשלחו נשמרים באופן מאובטח ומשמשים אך ורק לצורך בדיקת התאמה והעברה אפשרית לצוותי הגיוס הרלוונטיים. לא יועברו פרטים לגורמים שאינם רלוונטיים לתהליך, וניתן לבקש את הסרת הפרטים בכל עת.";
+/** Prominent warning shown across the admin area while mock mode is active. */
+export const MOCK_MODE_WARNING =
+  "מצב הדגמה פעיל — הנתונים נשמרים באופן זמני בלבד ואין להזין פרטים או קורות חיים אמיתיים.";
 
 /** Default follow-up window in days. */
 export const DEFAULT_FOLLOW_UP_DAYS = 7;
+
+/** Default referral bonus amount (ILS), used as a form default. */
+export const DEFAULT_BONUS_AMOUNT = 4000;
 
 /** CV upload constraints. */
 export const CV_MAX_SIZE_MB = 8;
