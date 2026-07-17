@@ -248,7 +248,38 @@ body {
   /* Safe-area support for Android / iPhone notches */
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
-  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* ==========================================================================
+   Appearance cross-fade
+
+   The transition is deliberately OFF by default so the initial load and route
+   changes never animate from one theme to another. The `theme-transitioning`
+   class is added to <html> only when the administrator presses the toggle
+   (see useTheme.setTheme) and removed once the fade settles, so a stored
+   appearance is painted instantly on load and only intentional switches fade.
+
+   Only theme-driven paint properties are animated — never layout (width,
+   height, padding, margin, position) or transform — so nothing shifts, jumps
+   or reflows during the switch. `transition: all` is intentionally avoided.
+   ========================================================================== */
+:root.theme-transitioning,
+:root.theme-transitioning *,
+:root.theme-transitioning *::before,
+:root.theme-transitioning *::after {
+  transition-property: background-color, border-color, color, fill, stroke,
+    box-shadow, outline-color, text-decoration-color;
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* The toggle glyphs cross-fade on opacity + transform; keep their own animated
+   properties during the switch (the global rule above would otherwise strip
+   them and make the icons snap). Higher specificity so it wins. */
+:root.theme-transitioning .theme-icon {
+  transition-property: opacity, transform;
+  transition-duration: 260ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* Ambient background glows */
@@ -423,7 +454,8 @@ body::before {
    */
   .theme-icon {
     grid-area: 1 / 1;
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transition: opacity 0.26s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
   }
   [data-theme="dark"] .theme-icon-moon,
   [data-theme="light"] .theme-icon-sun {

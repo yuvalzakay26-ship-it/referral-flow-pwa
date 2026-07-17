@@ -51,6 +51,23 @@ export function CandidateFilters({
 
   const sortValue = `${sort.key}:${sort.dir}`;
 
+  // The status filter accepts a comma-separated set for grouped deep links (e.g.
+  // the dashboard's "התקבלו" metric → accepted,bonus_pending,bonus_received).
+  // A native <select> can't show a multi-value selection, so without help it
+  // would fall back to painting the first option ("כל הסטטוסים") and hide that a
+  // filter is active. Detect the grouped case and surface it explicitly.
+  const statusValue = filters.status ?? "all";
+  const statusGroup =
+    statusValue !== "all" && statusValue.includes(",")
+      ? statusValue.split(",").filter(Boolean)
+      : null;
+  const statusGroupLabel = statusGroup
+    ? statusGroup
+        .map((s) => STATUS_LIST.find((x) => x.value === s)?.label)
+        .filter(Boolean)
+        .join(" · ")
+    : null;
+
   return (
     <div className="glass rounded-2xl p-4">
       <div className="relative mb-3">
@@ -69,11 +86,18 @@ export function CandidateFilters({
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
         <SelectInput
-          value={filters.status ?? "all"}
+          value={statusValue}
           onChange={(e) => onChange({ status: e.target.value as Filters["status"] })}
           aria-label="סינון לפי סטטוס"
         >
           <option value="all">כל הסטטוסים</option>
+          {/* Synthetic option keeps the selector showing the active grouped
+              filter instead of defaulting to "כל הסטטוסים". */}
+          {statusGroup && (
+            <option value={statusValue}>
+              מספר סטטוסים נבחרו ({statusGroup.length})
+            </option>
+          )}
           {STATUS_LIST.map((s) => (
             <option key={s.value} value={s.value}>
               {s.label}
@@ -193,14 +217,34 @@ export function CandidateFilters({
         </div>
       </div>
 
-      {hasActive && (
-        <button
-          onClick={onReset}
-          className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-[var(--rf-cyan)] hover:underline focus-ring"
-        >
-          <X size={14} />
-          ניקוי סינון
-        </button>
+      {(hasActive || statusGroup) && (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {statusGroup && (
+            <span
+              className="rf-badge badge-purple inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium"
+              title={statusGroupLabel ?? undefined}
+            >
+              סטטוס: {statusGroupLabel}
+              <button
+                type="button"
+                onClick={() => onChange({ status: "all" })}
+                aria-label="הסרת סינון הסטטוס"
+                className="focus-ring -mr-0.5 rounded-full p-0.5 hover:opacity-70"
+              >
+                <X size={12} />
+              </button>
+            </span>
+          )}
+          {hasActive && (
+            <button
+              onClick={onReset}
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--rf-cyan)] hover:underline focus-ring"
+            >
+              <X size={14} />
+              ניקוי סינון
+            </button>
+          )}
+        </div>
       )}
     </div>
   );

@@ -15,6 +15,17 @@ export const DEFAULT_THEME: Theme = "dark";
 
 export const THEMES: readonly Theme[] = ["dark", "light"];
 
+/**
+ * Duration of the appearance cross-fade, in ms. Kept in sync with the
+ * `.theme-transitioning` rule in globals.css so the temporary transition class
+ * is removed exactly when the CSS transition has finished. A small buffer is
+ * added on removal to avoid clipping the tail on slower frames.
+ */
+export const THEME_TRANSITION_MS = 300;
+
+/** Root class present only while a user-initiated appearance change animates. */
+export const THEME_TRANSITION_CLASS = "theme-transitioning";
+
 /** Browser/PWA chrome color per mode. Must track --rf-bg in globals.css. */
 export const THEME_COLORS: Record<Theme, string> = {
   dark: "#070A16",

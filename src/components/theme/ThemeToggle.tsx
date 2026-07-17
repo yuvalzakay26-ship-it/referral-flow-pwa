@@ -27,8 +27,11 @@ export function ThemeToggle({ className }: { className?: string }) {
         "grid h-10 w-10 flex-none place-items-center rounded-xl border",
         "border-[var(--border)] bg-[var(--surface-muted)] text-[var(--rf-text-muted)]",
         "transition-[background-color,color,border-color,transform] duration-200",
+        "ease-[cubic-bezier(0.22,1,0.36,1)]",
         "hover:bg-[var(--hover-background-strong)] hover:text-[var(--rf-text)]",
-        "hover:border-[var(--border-strong)] active:scale-95 focus-ring",
+        "hover:border-[var(--border-strong)] active:scale-90",
+        "active:bg-[var(--hover-background-strong)] motion-reduce:active:scale-100",
+        "focus-ring",
         className,
       )}
     >

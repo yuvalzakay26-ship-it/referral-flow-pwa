@@ -73,6 +73,8 @@ export function MobileNav({ activeHref, onMore, moreOpen }: MobileNavProps) {
           type="button"
           onClick={onMore}
           aria-label="עוד"
+          aria-haspopup="menu"
+          aria-expanded={moreOpen}
           className={cn(
             "flex flex-1 flex-col items-center gap-1 rounded-xl py-1.5 text-[10px] font-medium transition-colors focus-ring",
             moreOpen
