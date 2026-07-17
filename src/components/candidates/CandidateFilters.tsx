@@ -154,6 +154,7 @@ export function CandidateFilters({
           aria-label="סינון לפי מעקב"
         >
           <option value="all">כל המעקבים</option>
+          <option value="due">להיום ובאיחור</option>
           <option value="with">עם מעקב</option>
           <option value="without">ללא מעקב</option>
           <option value="overdue">מעקב באיחור</option>

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Users, SlidersHorizontal, UserPlus } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { EmptyState } from "@/components/admin/EmptyState";
@@ -31,12 +32,50 @@ const EMPTY_FILTERS: Filters = {
   toDate: "",
 };
 
-export default function CandidatesPage() {
-  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
-  const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({
-    key: "created_at",
-    dir: "desc",
-  });
+const SORT_KEYS: SortKey[] = [
+  "created_at",
+  "full_name",
+  "status",
+  "follow_up_date",
+  "updated_at",
+];
+
+/** Build initial filters + sort from the URL query string (deep links from the dashboard). */
+function readParams(sp: URLSearchParams): {
+  filters: Filters;
+  sort: { key: SortKey; dir: SortDir };
+} {
+  const filters: Filters = { ...EMPTY_FILTERS };
+  const get = (k: string) => sp.get(k) ?? undefined;
+
+  if (get("search")) filters.search = get("search");
+  if (get("status")) filters.status = get("status") as Filters["status"];
+  if (get("field")) filters.field = get("field");
+  if (get("source")) filters.source = get("source");
+  if (get("eligibility")) filters.eligibility = get("eligibility");
+  if (get("bonus")) filters.bonus = get("bonus");
+  if (get("employmentType")) filters.employmentType = get("employmentType");
+  if (get("followUp")) filters.followUp = get("followUp") as Filters["followUp"];
+  if (get("fromDate")) filters.fromDate = get("fromDate");
+  if (get("toDate")) filters.toDate = get("toDate");
+
+  let sort: { key: SortKey; dir: SortDir } = { key: "created_at", dir: "desc" };
+  const rawSort = get("sort");
+  if (rawSort) {
+    const [key, dir] = rawSort.split(":");
+    if (SORT_KEYS.includes(key as SortKey)) {
+      sort = { key: key as SortKey, dir: dir === "asc" ? "asc" : "desc" };
+    }
+  }
+  return { filters, sort };
+}
+
+function CandidatesView() {
+  const searchParams = useSearchParams();
+  // Initialize from URL once on mount; subsequent changes are user-driven.
+  const [{ filters, sort }, setState] = useState(() =>
+    readParams(new URLSearchParams(searchParams.toString())),
+  );
   const [candidates, setCandidates] = useState<Candidate[] | null>(null);
 
   // Fetch whenever filters or sort change. Uses an `active` flag so we never
@@ -53,21 +92,23 @@ export default function CandidatesPage() {
 
   function patchFilters(patch: Partial<Filters>) {
     setCandidates(null);
-    setFilters((f) => ({ ...f, ...patch }));
-  }
-
-  function toggleSort(key: SortKey) {
-    setCandidates(null);
-    setSort((s) =>
-      s.key === key
-        ? { key, dir: s.dir === "asc" ? "desc" : "asc" }
-        : { key, dir: "asc" },
-    );
+    setState((s) => ({ ...s, filters: { ...s.filters, ...patch } }));
   }
 
   function changeSort(key: SortKey, dir: SortDir) {
     setCandidates(null);
-    setSort({ key, dir });
+    setState((s) => ({ ...s, sort: { key, dir } }));
+  }
+
+  function toggleSort(key: SortKey) {
+    setCandidates(null);
+    setState((s) => ({
+      ...s,
+      sort:
+        s.sort.key === key
+          ? { key, dir: s.sort.dir === "asc" ? "desc" : "asc" }
+          : { key, dir: "asc" },
+    }));
   }
 
   const count = candidates?.length ?? 0;
@@ -96,7 +137,10 @@ export default function CandidatesPage() {
         onSortChange={changeSort}
         onReset={() => {
           setCandidates(null);
-          setFilters(EMPTY_FILTERS);
+          setState({
+            filters: EMPTY_FILTERS,
+            sort: { key: "created_at", dir: "desc" },
+          });
         }}
       />
 
@@ -125,5 +169,13 @@ export default function CandidatesPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function CandidatesPage() {
+  return (
+    <Suspense fallback={null}>
+      <CandidatesView />
+    </Suspense>
   );
 }

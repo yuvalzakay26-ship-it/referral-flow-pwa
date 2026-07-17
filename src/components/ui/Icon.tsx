@@ -55,10 +55,11 @@ export interface IconProps {
   name: string;
   className?: string;
   size?: number;
+  style?: React.CSSProperties;
   "aria-hidden"?: boolean;
 }
 
-export function Icon({ name, className, size = 16 }: IconProps) {
+export function Icon({ name, className, size = 16, style }: IconProps) {
   const Cmp = ICONS[name] ?? HelpCircle;
-  return <Cmp className={className} size={size} aria-hidden />;
+  return <Cmp className={className} size={size} style={style} aria-hidden />;
 }

@@ -26,7 +26,7 @@ export interface CandidateFilters {
   eligibility?: string | "all";
   bonus?: string | "all";
   employmentType?: string | "all";
-  followUp?: "all" | "with" | "without" | "overdue";
+  followUp?: "all" | "with" | "without" | "overdue" | "due";
   fromDate?: string;
   toDate?: string;
 }
@@ -63,7 +63,9 @@ export async function listCandidates(
     );
   }
   if (filters.status && filters.status !== "all") {
-    items = items.filter((c) => c.status === filters.status);
+    // Supports a single status or a comma-separated set (e.g. accepted family).
+    const set = String(filters.status).split(",");
+    items = items.filter((c) => set.includes(c.status));
   }
   if (filters.field && filters.field !== "all") {
     items = items.filter((c) => c.professional_field === filters.field);
@@ -90,6 +92,9 @@ export async function listCandidates(
       items = items.filter((c) => !c.follow_up_date);
     } else if (filters.followUp === "overdue") {
       items = items.filter((c) => c.follow_up_date && c.follow_up_date < today);
+    } else if (filters.followUp === "due") {
+      // Due today or overdue.
+      items = items.filter((c) => c.follow_up_date && c.follow_up_date <= today);
     }
   }
   if (filters.fromDate) {

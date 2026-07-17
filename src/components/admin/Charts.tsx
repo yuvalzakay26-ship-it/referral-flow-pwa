@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const PALETTE = [
@@ -14,6 +15,8 @@ const PALETTE = [
 export interface ChartDatum {
   label: string;
   value: number;
+  /** Optional deep link — makes the row/legend entry clickable. */
+  href?: string;
 }
 
 /** Horizontal bar list — readable, RTL-friendly distribution chart. */
@@ -26,34 +29,47 @@ export function BarList({
 }) {
   const max = Math.max(1, ...data.map((d) => d.value));
   return (
-    <div className={cn("flex flex-col gap-3", className)}>
-      {data.map((d, i) => (
-        <div key={d.label}>
-          <div className="mb-1 flex items-center justify-between text-sm">
-            <span className="text-[var(--rf-text)]">{d.label}</span>
-            <span className="font-semibold text-[var(--rf-text-muted)]">
-              {d.value}
-            </span>
-          </div>
-          <div className="h-2.5 w-full overflow-hidden rounded-full bg-white/5">
-            <div
-              className="h-full rounded-full transition-all"
-              style={{
-                width: `${(d.value / max) * 100}%`,
-                background: PALETTE[i % PALETTE.length],
-              }}
-            />
-          </div>
-        </div>
-      ))}
+    <div className={cn("flex flex-col gap-2.5", className)}>
+      {data.map((d, i) => {
+        const row = (
+          <>
+            <div className="mb-1 flex items-center justify-between gap-2 text-sm">
+              <span className="truncate text-[var(--rf-text)]">{d.label}</span>
+              <span className="flex-none font-semibold text-[var(--rf-text-muted)]">
+                {d.value}
+              </span>
+            </div>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-white/5">
+              <div
+                className="h-full rounded-full transition-all"
+                style={{
+                  width: `${(d.value / max) * 100}%`,
+                  background: PALETTE[i % PALETTE.length],
+                }}
+              />
+            </div>
+          </>
+        );
+        return d.href ? (
+          <Link
+            key={d.label}
+            href={d.href}
+            className="block rounded-lg p-1 -m-1 transition-colors hover:bg-white/[0.04] focus-ring"
+          >
+            {row}
+          </Link>
+        ) : (
+          <div key={d.label}>{row}</div>
+        );
+      })}
     </div>
   );
 }
 
-/** Donut chart from conic-gradient. */
+/** Donut chart from conic-gradient. Legend stacks below on mobile. */
 export function DonutChart({
   data,
-  size = 160,
+  size = 156,
 }: {
   data: ChartDatum[];
   size?: number;
@@ -69,7 +85,7 @@ export function DonutChart({
     .join(", ");
 
   return (
-    <div className="flex items-center gap-5">
+    <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-center">
       <div
         className="relative flex-none rounded-full"
         style={{
@@ -90,17 +106,37 @@ export function DonutChart({
           </div>
         </div>
       </div>
-      <ul className="flex flex-col gap-2 text-sm">
-        {data.map((d, i) => (
-          <li key={d.label} className="flex items-center gap-2">
-            <span
-              className="h-3 w-3 flex-none rounded-full"
-              style={{ background: PALETTE[i % PALETTE.length] }}
-            />
-            <span className="text-[var(--rf-text-muted)]">{d.label}</span>
-            <span className="font-semibold text-[var(--rf-text)]">{d.value}</span>
-          </li>
-        ))}
+      <ul className="flex w-full flex-col gap-1.5 text-sm sm:w-auto">
+        {data.map((d, i) => {
+          const content = (
+            <>
+              <span
+                className="h-3 w-3 flex-none rounded-full"
+                style={{ background: PALETTE[i % PALETTE.length] }}
+              />
+              <span className="flex-1 truncate text-[var(--rf-text-muted)]">
+                {d.label}
+              </span>
+              <span className="flex-none font-semibold text-[var(--rf-text)]">
+                {d.value}
+              </span>
+            </>
+          );
+          return (
+            <li key={d.label}>
+              {d.href ? (
+                <Link
+                  href={d.href}
+                  className="flex items-center gap-2 rounded-lg px-2 py-1 -mx-2 transition-colors hover:bg-white/[0.04] focus-ring"
+                >
+                  {content}
+                </Link>
+              ) : (
+                <span className="flex items-center gap-2 px-2 py-1">{content}</span>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

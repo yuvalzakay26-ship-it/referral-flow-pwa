@@ -9,18 +9,24 @@ import {
   UserPlus,
   MessageSquare,
   Briefcase,
+  BarChart3,
   Settings,
   LogOut,
-  Menu,
   X,
   type LucideIcon,
 } from "lucide-react";
 import { Logo, LogoMark } from "@/components/ui/Logo";
-import { ADMIN_NAV } from "./AdminNav";
-import { MockModeBanner } from "./MockModeBanner";
+import {
+  ADMIN_NAV,
+  ADMIN_NAV_PRIMARY,
+  ADMIN_NAV_SECONDARY,
+  type AdminNavItem,
+} from "./AdminNav";
+import { MobileNav } from "./MobileNav";
 import { cn } from "@/lib/utils";
 import { isAuthed, logout } from "@/lib/auth";
 import { DEFAULT_SETTINGS } from "@/config/settings";
+import { USE_MOCK_DATA } from "@/config/app";
 
 const ICONS: Record<string, LucideIcon> = {
   LayoutDashboard,
@@ -28,6 +34,7 @@ const ICONS: Record<string, LucideIcon> = {
   UserPlus,
   MessageSquare,
   Briefcase,
+  BarChart3,
   Settings,
 };
 
@@ -94,28 +101,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </Link>
         </div>
         <nav className="flex flex-1 flex-col gap-1 px-3">
-          {ADMIN_NAV.map((item) => {
-            const Icon = ICONS[item.icon] ?? LayoutDashboard;
-            const active = activeHref === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all focus-ring",
-                  active
-                    ? "text-white shadow-[0_0_0_1px_color-mix(in_srgb,var(--rf-purple)_40%,transparent)]"
-                    : "text-[var(--rf-text-muted)] hover:bg-white/5 hover:text-[var(--rf-text)]",
-                )}
-                style={active ? { background: "var(--rf-gradient-soft)" } : undefined}
-              >
-                <Icon size={18} />
-                {item.label}
-              </Link>
-            );
-          })}
+          {ADMIN_NAV_PRIMARY.map((item) => (
+            <SidebarLink key={item.href} item={item} active={activeHref === item.href} />
+          ))}
         </nav>
-        <div className="border-t border-white/5 p-3">
+        <div className="mt-2 flex flex-col gap-1 border-t border-white/8 px-3 pt-3">
+          {ADMIN_NAV_SECONDARY.map((item) => (
+            <SidebarLink key={item.href} item={item} active={activeHref === item.href} />
+          ))}
           <button
             onClick={handleLogout}
             className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[var(--rf-text-muted)] transition-all hover:bg-white/5 hover:text-red-300 focus-ring"
@@ -124,85 +117,160 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             יציאה
           </button>
         </div>
+        <div className="p-3">
+          <MockChip />
+        </div>
       </aside>
 
       {/* Main column */}
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Top bar */}
-        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-white/5 glass px-4 py-3 lg:px-8">
-          <div className="flex items-center gap-3">
-            <button
-              className="rounded-lg p-2 text-[var(--rf-text)] hover:bg-white/5 focus-ring lg:hidden"
-              onClick={() => setMobileOpen(true)}
-              aria-label="פתיחת תפריט"
-            >
-              <Menu size={20} />
-            </button>
-            <span className="text-sm text-[var(--rf-text-muted)]">
-              שלום, {DEFAULT_SETTINGS.admin_display_name} 👋
-            </span>
+        {/* Compact, opaque top bar */}
+        <header className="admin-header sticky top-0 z-30 px-4 py-2.5 lg:px-8 lg:py-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0 leading-tight">
+              <p className="truncate text-sm font-bold text-[var(--rf-text)]">
+                שלום, {DEFAULT_SETTINGS.admin_display_name} 👋
+              </p>
+              <p className="truncate text-[11px] text-[var(--rf-text-muted)]">
+                אזור ניהול פרטי
+              </p>
+            </div>
+            <Link href="/admin" className="focus-ring rounded-lg lg:hidden" aria-label="ReferralFlow">
+              <LogoMark size={30} />
+            </Link>
           </div>
-          <span className="text-xs text-[var(--rf-text-muted)]">
-            אזור ניהול פרטי
-          </span>
         </header>
 
-        <main className="flex-1 p-4 lg:p-8">
-          <MockModeBanner />
+        <main className="flex-1 p-4 pb-28 lg:p-8 lg:pb-8">
           {children}
         </main>
       </div>
 
-      {/* Mobile drawer */}
+      {/* Mobile bottom navigation */}
+      <MobileNav
+        activeHref={activeHref}
+        onMore={() => setMobileOpen(true)}
+        moreOpen={mobileOpen}
+      />
+
+      {/* Mobile drawer ("עוד") */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/65 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="absolute inset-y-0 right-0 flex w-72 max-w-[80%] flex-col glass-elevated p-5">
-            <div className="mb-6 flex items-center justify-between">
-              <Logo size={34} subtitle="ניהול" />
+          <div className="absolute inset-y-0 right-0 flex w-72 max-w-[82%] flex-col glass-elevated">
+            <div className="flex items-center justify-between p-5 pb-4">
+              <Logo size={32} subtitle="ניהול" />
               <button
                 onClick={() => setMobileOpen(false)}
                 aria-label="סגירה"
-                className="rounded-lg p-2 hover:bg-white/5 focus-ring"
+                className="rounded-lg p-2 text-[var(--rf-text)] hover:bg-white/5 focus-ring"
               >
                 <X size={20} />
               </button>
             </div>
-            <nav className="flex flex-1 flex-col gap-1">
-              {ADMIN_NAV.map((item) => {
-                const Icon = ICONS[item.icon] ?? LayoutDashboard;
-                const active = activeHref === item.href;
-                return (
-                  <Link
+
+            <div className="flex flex-1 flex-col overflow-y-auto px-3">
+              {/* Prominent creation action */}
+              <Link
+                href="/admin/candidates/new"
+                className="btn-gradient mb-3 flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold focus-ring"
+              >
+                <UserPlus size={18} />
+                מועמד חדש
+              </Link>
+
+              <nav className="flex flex-col gap-0.5">
+                {ADMIN_NAV_PRIMARY.filter(
+                  (i) => i.href !== "/admin/candidates/new",
+                ).map((item) => (
+                  <DrawerLink
                     key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-medium transition-all",
-                      active
-                        ? "text-white"
-                        : "text-[var(--rf-text-muted)] hover:bg-white/5",
-                    )}
-                    style={active ? { background: "var(--rf-gradient-soft)" } : undefined}
-                  >
-                    <Icon size={18} />
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </nav>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-medium text-[var(--rf-text-muted)] hover:bg-white/5 hover:text-red-300"
-            >
-              <LogOut size={18} />
-              יציאה
-            </button>
+                    item={item}
+                    active={activeHref === item.href}
+                  />
+                ))}
+              </nav>
+
+              <div className="my-3 border-t border-white/8" />
+
+              <nav className="flex flex-col gap-0.5">
+                {ADMIN_NAV_SECONDARY.map((item) => (
+                  <DrawerLink
+                    key={item.href}
+                    item={item}
+                    active={activeHref === item.href}
+                  />
+                ))}
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-medium text-[var(--rf-text-muted)] hover:bg-white/5 hover:text-red-300 focus-ring"
+                >
+                  <LogOut size={18} />
+                  יציאה
+                </button>
+              </nav>
+            </div>
+
+            <div className="p-4">
+              <MockChip />
+            </div>
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+function SidebarLink({ item, active }: { item: AdminNavItem; active: boolean }) {
+  const Icon = ICONS[item.icon] ?? LayoutDashboard;
+  return (
+    <Link
+      href={item.href}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all focus-ring",
+        active
+          ? "text-white shadow-[0_0_0_1px_color-mix(in_srgb,var(--rf-purple)_40%,transparent)]"
+          : "text-[var(--rf-text-muted)] hover:bg-white/5 hover:text-[var(--rf-text)]",
+      )}
+      style={active ? { background: "var(--rf-gradient-soft)" } : undefined}
+    >
+      <Icon size={18} />
+      {item.label}
+    </Link>
+  );
+}
+
+function DrawerLink({ item, active }: { item: AdminNavItem; active: boolean }) {
+  const Icon = ICONS[item.icon] ?? LayoutDashboard;
+  return (
+    <Link
+      href={item.href}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-medium transition-all focus-ring",
+        active
+          ? "text-white"
+          : "text-[var(--rf-text)] hover:bg-white/5",
+      )}
+      style={active ? { background: "var(--rf-gradient-soft)" } : undefined}
+    >
+      <Icon size={18} className={active ? undefined : "text-[var(--rf-text-muted)]"} />
+      {item.label}
+    </Link>
+  );
+}
+
+/** Discreet mock-mode indicator shown near the bottom of the navigation. */
+function MockChip() {
+  if (!USE_MOCK_DATA) return null;
+  return (
+    <span className="inline-flex items-center gap-2 rounded-full border border-amber-400/25 bg-amber-500/10 px-3 py-1.5 text-[11px] font-medium text-amber-200/90">
+      <span className="h-1.5 w-1.5 rounded-full bg-amber-300" />
+      מצב הדגמה — נתונים זמניים
+    </span>
   );
 }

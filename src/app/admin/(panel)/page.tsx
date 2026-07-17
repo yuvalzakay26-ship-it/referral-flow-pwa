@@ -1,209 +1,350 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import {
+  UserPlus,
   Users,
-  Sparkles,
+  Briefcase,
+  MessageSquare,
+  Clock,
+  AlertCircle,
+  CalendarClock,
+  Copy,
   Send,
   Workflow,
   CheckCircle2,
-  Hourglass,
-  BadgeCheck,
-  Copy,
-  Clock,
-  CalendarClock,
+  ChevronLeft,
+  BarChart3,
   ArrowLeft,
-  UserPlus,
-  MessageSquare,
-  Briefcase,
   type LucideIcon,
 } from "lucide-react";
-import { PageHeader } from "@/components/admin/PageHeader";
-import { StatCard } from "@/components/admin/StatCard";
-import { BarList, DonutChart } from "@/components/admin/Charts";
-import { InstallCard } from "@/components/admin/InstallCard";
-import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
+import { MockModeBanner } from "@/components/admin/MockModeBanner";
 import { StatusBadge } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { FollowUpList } from "@/components/admin/FollowUpList";
 import { getDashboardStats, type DashboardStats } from "@/services/statsService";
-import { getStatusMeta } from "@/config/statuses";
-import { getSourceMeta } from "@/config/sources";
 import { formatDate } from "@/lib/utils";
+
+const ACCEPTED_FILTER = "accepted,bonus_pending,bonus_received";
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
 
-  useEffect(() => {
+  const refresh = useCallback(() => {
     getDashboardStats().then(setStats);
   }, []);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   const loading = !stats;
 
   return (
-    <div>
-      <PageHeader
-        title="דשבורד"
-        description="מבט-על על המועמדים, הסטטוסים והמקורות."
-      />
+    <div className="mx-auto max-w-3xl">
+      <MockModeBanner />
 
-      {/* Quick shortcuts */}
-      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Shortcut href="/admin/candidates/new" icon={UserPlus} label="מועמד חדש" accent="var(--rf-magenta)" />
-        <Shortcut href="/admin/candidates" icon={Users} label="כל המועמדים" accent="var(--rf-cyan)" />
-        <Shortcut href="/admin/jobs" icon={Briefcase} label="משרה חדשה" accent="var(--rf-purple)" />
-        <Shortcut href="/admin/messages" icon={MessageSquare} label="הודעות מוכנות" accent="var(--rf-blue)" />
-      </div>
+      {/* 2 · Primary action */}
+      <section className="mb-6">
+        <Link
+          href="/admin/candidates/new"
+          className="btn-gradient flex w-full items-center justify-center gap-2.5 rounded-2xl px-6 py-4 text-base font-bold focus-ring"
+        >
+          <UserPlus size={22} strokeWidth={2.4} />
+          מועמד חדש
+        </Link>
+        <div className="mt-3 flex items-center justify-center gap-2 text-sm">
+          <QuickLink href="/admin/candidates" icon={Users} label="כל המועמדים" />
+          <span className="text-white/10">·</span>
+          <QuickLink href="/admin/jobs" icon={Briefcase} label="משרה חדשה" />
+          <span className="text-white/10">·</span>
+          <QuickLink href="/admin/messages" icon={MessageSquare} label="הודעות מוכנות" />
+        </div>
+      </section>
 
-      {/* Primary stats */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        <StatCard label="סה״כ מועמדים" value={stats?.total ?? 0} icon={Users} accent="var(--rf-purple)" loading={loading} />
-        <StatCard label="חדשים" value={stats?.new ?? 0} icon={Sparkles} accent="var(--rf-cyan)" loading={loading} />
-        <StatCard label="ממתין לבדיקה" value={stats?.pendingReview ?? 0} icon={Clock} accent="#3B82F6" loading={loading} />
-        <StatCard label="הועברו לחברה" value={stats?.transferred ?? 0} icon={Send} accent="var(--rf-magenta)" loading={loading} />
-        <StatCard label="בתהליך גיוס" value={stats?.inRecruitment ?? 0} icon={Workflow} accent="var(--rf-blue)" loading={loading} />
-        <StatCard label="התקבלו" value={stats?.hired ?? 0} icon={CheckCircle2} accent="#22C55E" loading={loading} />
-        <StatCard label="בונוס בהמתנה" value={stats?.bonusPending ?? 0} icon={Hourglass} accent="#F59E0B" loading={loading} />
-        <StatCard label="בונוס התקבל" value={stats?.bonusReceived ?? 0} icon={BadgeCheck} accent="#22C55E" loading={loading} />
-        <StatCard label="ייתכן שקיים" value={stats?.possibleDuplicate ?? 0} icon={Copy} accent="#F72585" loading={loading} />
-      </div>
+      {/* 3 · Attention required */}
+      <section className="mb-6">
+        <SectionTitle>דורש טיפול</SectionTitle>
+        {loading ? (
+          <div className="grid grid-cols-2 gap-2.5">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-14 w-full rounded-2xl" />
+            ))}
+          </div>
+        ) : (
+          <AttentionGrid stats={stats} />
+        )}
+      </section>
 
-      {/* Charts + follow-ups */}
-      <div className="mt-6 grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>מועמדים לפי תחום</CardTitle>
-          </CardHeader>
-          {loading ? (
-            <div className="flex flex-col gap-3">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-8 w-full" />
-              ))}
-            </div>
-          ) : (
-            <BarList
-              data={stats.byField.slice(0, 7).map((f) => ({
-                label: f.field,
-                value: f.count,
-              }))}
-            />
-          )}
-        </Card>
+      {/* 4 · Key metrics */}
+      <section className="mb-6">
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+          <MetricCard
+            label="סה״כ מועמדים"
+            value={stats?.total}
+            icon={Users}
+            accent="var(--rf-purple)"
+            href="/admin/candidates"
+            loading={loading}
+          />
+          <MetricCard
+            label="הועברו לחברה"
+            value={stats?.transferred}
+            icon={Send}
+            accent="var(--rf-blue)"
+            href="/admin/candidates?status=transferred"
+            loading={loading}
+          />
+          <MetricCard
+            label="בתהליך גיוס"
+            value={stats?.inRecruitment}
+            icon={Workflow}
+            accent="var(--rf-cyan)"
+            href="/admin/candidates?status=in_recruitment"
+            loading={loading}
+          />
+          <MetricCard
+            label="התקבלו"
+            value={stats?.hired}
+            icon={CheckCircle2}
+            accent="var(--rf-success)"
+            href={`/admin/candidates?status=${ACCEPTED_FILTER}`}
+            loading={loading}
+          />
+        </div>
+      </section>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>מקורות הגעה</CardTitle>
-          </CardHeader>
-          {loading ? (
-            <Skeleton className="h-40 w-full" />
-          ) : (
-            <DonutChart
-              data={stats.bySource.map((s) => ({
-                label: getSourceMeta(s.source as never).label,
-                value: s.count,
-              }))}
-            />
-          )}
-        </Card>
-      </div>
+      {/* 5 · Upcoming follow-ups */}
+      <section className="mb-6">
+        <div className="mb-3 flex items-center justify-between">
+          <SectionTitle className="mb-0">מעקבים קרובים</SectionTitle>
+          <Link
+            href="/admin/candidates?followUp=due&sort=follow_up_date:asc"
+            className="text-xs font-medium text-[var(--rf-text-muted)] hover:text-[var(--rf-cyan)] focus-ring rounded"
+          >
+            כל המעקבים
+          </Link>
+        </div>
+        {loading ? (
+          <div className="flex flex-col gap-2">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-16 w-full rounded-2xl" />
+            ))}
+          </div>
+        ) : (
+          <FollowUpList items={stats.recentFollowUps} onChange={refresh} />
+        )}
+      </section>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>פילוח לפי סטטוס</CardTitle>
-          </CardHeader>
-          {loading ? (
-            <Skeleton className="h-40 w-full" />
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {stats.byStatus
-                .sort((a, b) => b.count - a.count)
-                .map((s) => (
-                  <div
-                    key={s.status}
-                    className="flex items-center gap-2 rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2"
-                  >
-                    <StatusBadge status={s.status} size="sm" />
-                    <span className="text-sm font-bold text-[var(--rf-text)]">
-                      {s.count}
-                    </span>
+      {/* 6 · Recent candidates */}
+      <section className="mb-6">
+        <div className="mb-3 flex items-center justify-between">
+          <SectionTitle className="mb-0">מועמדים אחרונים</SectionTitle>
+          <Link
+            href="/admin/candidates"
+            className="text-xs font-medium text-[var(--rf-text-muted)] hover:text-[var(--rf-cyan)] focus-ring rounded"
+          >
+            צפייה בכל המועמדים
+          </Link>
+        </div>
+        {loading ? (
+          <div className="flex flex-col gap-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-16 w-full rounded-2xl" />
+            ))}
+          </div>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {stats.recentCandidates.slice(0, 4).map((c) => (
+              <li key={c.id}>
+                <Link
+                  href={`/admin/candidates/${c.id}`}
+                  className="glass flex items-center gap-3 rounded-2xl p-3 transition-colors hover:bg-white/[0.05] focus-ring"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-[var(--rf-text)]">
+                      {c.full_name}
+                    </p>
+                    <p className="truncate text-xs text-[var(--rf-text-muted)]">
+                      {c.professional_field} · נוסף {formatDate(c.date_received ?? c.created_at)}
+                    </p>
                   </div>
-                ))}
-            </div>
-          )}
-        </Card>
+                  <StatusBadge status={c.status} size="sm" />
+                  <ChevronLeft size={16} className="flex-none text-[var(--rf-text-muted)]" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
-        {/* Upcoming follow-ups */}
-        <Card>
-          <CardHeader>
-            <CardTitle>מעקבים קרובים</CardTitle>
-            <CalendarClock size={18} className="text-[var(--rf-text-muted)]" />
-          </CardHeader>
-          {loading ? (
-            <div className="flex flex-col gap-3">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
-            </div>
-          ) : stats.recentFollowUps.length === 0 ? (
-            <p className="py-6 text-center text-sm text-[var(--rf-text-muted)]">
-              אין מעקבים מתוזמנים.
-            </p>
-          ) : (
-            <ul className="flex flex-col gap-2">
-              {stats.recentFollowUps.map((c) => (
-                <li key={c.id}>
-                  <Link
-                    href={`/admin/candidates/${c.id}`}
-                    className="flex items-center justify-between gap-2 rounded-xl border border-white/8 bg-white/[0.02] px-3 py-2.5 transition-colors hover:bg-white/5 focus-ring"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-[var(--rf-text)]">
-                        {c.full_name}
-                      </p>
-                      <p className="text-xs text-[var(--rf-text-muted)]">
-                        {getStatusMeta(c.status).label} · {formatDate(c.follow_up_date)}
-                      </p>
-                    </div>
-                    <ArrowLeft size={16} className="flex-none text-[var(--rf-text-muted)]" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-      </div>
-
-      <div className="mt-6 max-w-md">
-        <InstallCard />
-      </div>
+      {/* 7 · Analytics link */}
+      <Link
+        href="/admin/analytics"
+        className="glass flex items-center justify-between rounded-2xl px-4 py-3.5 transition-colors hover:bg-white/[0.05] focus-ring"
+      >
+        <span className="flex items-center gap-2.5 text-sm font-medium text-[var(--rf-text)]">
+          <BarChart3 size={18} className="text-[var(--rf-purple)]" />
+          נתונים ואנליטיקה מלאה
+        </span>
+        <ArrowLeft size={16} className="text-[var(--rf-text-muted)]" />
+      </Link>
     </div>
   );
 }
 
-function Shortcut({
+/* ------------------------------------------------------------------ */
+/* Pieces                                                              */
+/* ------------------------------------------------------------------ */
+
+function SectionTitle({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <h2 className={`mb-3 text-sm font-bold text-[var(--rf-text-muted)] ${className}`}>
+      {children}
+    </h2>
+  );
+}
+
+function QuickLink({
   href,
   icon: Icon,
   label,
-  accent,
 }: {
   href: string;
   icon: LucideIcon;
   label: string;
-  accent: string;
 }) {
   return (
     <Link
       href={href}
-      className="glass flex items-center gap-3 rounded-2xl p-4 transition-colors hover:bg-white/[0.05] focus-ring"
+      className="inline-flex items-center gap-1.5 rounded-lg px-1 py-0.5 text-[var(--rf-text-muted)] transition-colors hover:text-[var(--rf-text)] focus-ring"
+    >
+      <Icon size={15} />
+      {label}
+    </Link>
+  );
+}
+
+interface AttentionItem {
+  label: string;
+  count: number;
+  href: string;
+  icon: LucideIcon;
+  color: string;
+}
+
+function AttentionGrid({ stats }: { stats: DashboardStats }) {
+  const items: AttentionItem[] = [
+    {
+      label: "ממתינים לבדיקה",
+      count: stats.pendingReview,
+      href: "/admin/candidates?status=pending_review",
+      icon: Clock,
+      color: "var(--rf-blue)",
+    },
+    {
+      label: "חסרים פרטים",
+      count: stats.missingDetails,
+      href: "/admin/candidates?status=missing_details",
+      icon: AlertCircle,
+      color: "var(--rf-warning)",
+    },
+    {
+      label: "מעקבים להיום או באיחור",
+      count: stats.followUpDue,
+      href: "/admin/candidates?followUp=due&sort=follow_up_date:asc",
+      icon: CalendarClock,
+      color: "var(--rf-danger)",
+    },
+    {
+      label: "ייתכן שכבר קיימים במערכת",
+      count: stats.possibleDuplicate,
+      href: "/admin/candidates?status=possible_duplicate",
+      icon: Copy,
+      color: "var(--rf-magenta)",
+    },
+  ].filter((i) => i.count > 0);
+
+  if (items.length === 0) {
+    return (
+      <div className="glass flex items-center gap-3 rounded-2xl px-4 py-4">
+        <CheckCircle2 size={20} className="flex-none text-[var(--rf-success)]" />
+        <p className="text-sm text-[var(--rf-text-muted)]">
+          הכול מסודר כרגע — אין משימות דחופות.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-2 gap-2.5">
+      {items.map((item) => (
+        <Link
+          key={item.label}
+          href={item.href}
+          className="glass flex items-center gap-3 rounded-2xl p-3 transition-colors hover:bg-white/[0.05] focus-ring"
+        >
+          <span
+            className="flex h-9 w-9 flex-none items-center justify-center rounded-xl"
+            style={{ background: `color-mix(in srgb, ${item.color} 16%, transparent)` }}
+          >
+            <item.icon size={17} style={{ color: item.color }} />
+          </span>
+          <div className="min-w-0">
+            <p className="text-lg font-black leading-none text-[var(--rf-text)]">
+              {item.count}
+            </p>
+            <p className="mt-1 truncate text-[11px] leading-tight text-[var(--rf-text-muted)]">
+              {item.label}
+            </p>
+          </div>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+  icon: Icon,
+  accent,
+  href,
+  loading,
+}: {
+  label: string;
+  value: number | undefined;
+  icon: LucideIcon;
+  accent: string;
+  href: string;
+  loading?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className="glass flex flex-col gap-2 rounded-2xl p-4 transition-colors hover:bg-white/[0.05] focus-ring"
     >
       <span
-        className="flex h-10 w-10 flex-none items-center justify-center rounded-xl"
-        style={{ background: `color-mix(in srgb, ${accent} 18%, transparent)` }}
+        className="flex h-8 w-8 items-center justify-center rounded-lg"
+        style={{ background: `color-mix(in srgb, ${accent} 16%, transparent)` }}
       >
-        <Icon size={20} style={{ color: accent }} />
+        <Icon size={16} style={{ color: accent }} />
       </span>
-      <span className="text-sm font-semibold text-[var(--rf-text)]">{label}</span>
+      {loading ? (
+        <Skeleton className="h-8 w-10" />
+      ) : (
+        <p className="text-2xl font-black leading-none tracking-tight text-[var(--rf-text)] sm:text-3xl">
+          {value ?? 0}
+        </p>
+      )}
+      <p className="text-xs font-medium text-[var(--rf-text-muted)]">{label}</p>
     </Link>
   );
 }
