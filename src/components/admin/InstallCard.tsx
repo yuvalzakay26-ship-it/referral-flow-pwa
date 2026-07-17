@@ -46,7 +46,7 @@ export function InstallCard() {
         <button
           onClick={() => setDismissed(true)}
           aria-label="סגירה"
-          className="absolute left-3 top-3 rounded-lg p-1.5 text-[var(--rf-text-muted)] hover:bg-white/5"
+          className="absolute left-3 top-3 rounded-lg p-1.5 text-[var(--rf-text-muted)] hover:bg-[var(--hover-background)]"
         >
           <X size={16} />
         </button>
@@ -76,7 +76,7 @@ export function InstallCard() {
             התקנה עכשיו
           </Button>
         ) : (
-          <p className="mt-4 flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-xs leading-relaxed text-[var(--rf-text-muted)]">
+          <p className="mt-4 flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-3 text-xs leading-relaxed text-[var(--rf-text-muted)]">
             <Share size={14} className="flex-none text-[var(--rf-cyan)]" />
             בנייד: פתחו את תפריט הדפדפן ובחרו &quot;הוספה למסך הבית&quot;.
           </p>

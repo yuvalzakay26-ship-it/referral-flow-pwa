@@ -42,7 +42,7 @@ export function CandidateTable({ candidates, onSort }: Props) {
       <div className="overflow-x-auto">
         <table className="w-full text-right text-sm">
           <thead>
-            <tr className="border-b border-white/8 text-xs text-[var(--rf-text-muted)]">
+            <tr className="border-b border-[var(--border-subtle)] text-xs text-[var(--rf-text-muted)]">
               <th className="px-4 py-3 font-medium">
                 <SortButton label="שם" active onClick={() => onSort("full_name")} />
               </th>
@@ -67,7 +67,7 @@ export function CandidateTable({ candidates, onSort }: Props) {
             {candidates.map((c) => (
               <tr
                 key={c.id}
-                className="border-b border-white/5 transition-colors last:border-0 hover:bg-white/[0.03]"
+                className="border-b border-[var(--border-subtle)] transition-colors last:border-0 hover:bg-[var(--hover-background)]"
               >
                 <td className="px-4 py-3">
                   <Link
@@ -116,7 +116,7 @@ export function CandidateTable({ candidates, onSort }: Props) {
                   <Link
                     href={`/admin/candidates/${c.id}`}
                     aria-label={`פרטי ${c.full_name}`}
-                    className="inline-flex rounded-lg p-1.5 text-[var(--rf-text-muted)] hover:bg-white/5 hover:text-[var(--rf-text)] focus-ring"
+                    className="inline-flex rounded-lg p-1.5 text-[var(--rf-text-muted)] hover:bg-[var(--hover-background)] hover:text-[var(--rf-text)] focus-ring"
                   >
                     <ChevronLeft size={18} />
                   </Link>

@@ -116,7 +116,7 @@ export function CandidateActions({
         הורדת קורות חיים
       </Button>
 
-      <div className="my-1 border-t border-white/8" />
+      <div className="my-1 border-t border-[var(--border-subtle)]" />
 
       <Button
         variant="solid"

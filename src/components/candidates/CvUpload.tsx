@@ -53,8 +53,8 @@ export function CvUpload({ file, onChange, error }: CvUploadProps) {
           className={cn(
             "flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-6 py-10 text-center transition-all focus-ring",
             dragging
-              ? "border-[var(--rf-cyan)] bg-[var(--rf-cyan)]/5"
-              : "border-white/15 bg-white/[0.03] hover:border-white/30 hover:bg-white/5",
+              ? "border-[var(--rf-cyan)] bg-[color-mix(in_srgb,var(--rf-cyan)_8%,transparent)]"
+              : "border-[var(--border-strong)] bg-[var(--surface-muted)] hover:border-[var(--rf-purple)] hover:bg-[var(--hover-background)]",
           )}
         >
           <span
@@ -73,7 +73,7 @@ export function CvUpload({ file, onChange, error }: CvUploadProps) {
           </div>
         </div>
       ) : (
-        <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[var(--rf-surface-2)]/60 p-4">
+        <div className="flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--rf-surface-2)]/60 p-4">
           <span className="flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-[var(--rf-magenta)]/15">
             <FileText size={20} className="text-[var(--rf-magenta)]" />
           </span>
@@ -89,7 +89,7 @@ export function CvUpload({ file, onChange, error }: CvUploadProps) {
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
-              className="rounded-lg px-3 py-1.5 text-xs font-medium text-[var(--rf-cyan)] hover:bg-white/5 focus-ring"
+              className="rounded-lg px-3 py-1.5 text-xs font-medium text-[var(--rf-cyan)] hover:bg-[var(--hover-background)] focus-ring"
             >
               החלפה
             </button>
@@ -97,7 +97,7 @@ export function CvUpload({ file, onChange, error }: CvUploadProps) {
               type="button"
               onClick={() => onChange(null)}
               aria-label="הסרת הקובץ"
-              className="rounded-lg p-1.5 text-[var(--rf-text-muted)] hover:bg-white/5 hover:text-red-400 focus-ring"
+              className="rounded-lg p-1.5 text-[var(--rf-text-muted)] hover:bg-[var(--hover-background)] hover:text-[var(--rf-danger)] focus-ring"
             >
               <X size={16} />
             </button>
@@ -114,7 +114,7 @@ export function CvUpload({ file, onChange, error }: CvUploadProps) {
       />
 
       {shownError && (
-        <p className="mt-2 text-xs font-medium text-red-400" role="alert">
+        <p className="mt-2 text-xs font-medium text-[var(--rf-danger)]" role="alert">
           {shownError}
         </p>
       )}

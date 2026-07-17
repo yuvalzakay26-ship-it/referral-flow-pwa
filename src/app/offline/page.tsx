@@ -9,7 +9,7 @@ export default function OfflinePage() {
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center px-6 text-center">
       <LogoMark size={64} />
-      <span className="mt-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5">
+      <span className="mt-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--surface-muted)]">
         <WifiOff size={26} className="text-[var(--rf-text-muted)]" />
       </span>
       <h1 className="mt-4 text-2xl font-black tracking-tight">אין חיבור לאינטרנט</h1>

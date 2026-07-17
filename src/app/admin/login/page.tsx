@@ -79,7 +79,7 @@ export default function AdminLoginPage() {
           </form>
 
           {USE_MOCK_DATA && (
-            <div className="mt-4 flex items-start gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-xs text-[var(--rf-text-muted)]">
+            <div className="mt-4 flex items-start gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-3 text-xs text-[var(--rf-text-muted)]">
               <Lock size={14} className="mt-0.5 flex-none text-[var(--rf-cyan)]" />
               <span>
                 מצב הדגמה (Mock): התחברו עם המשתמש <b className="text-[var(--rf-text)]">admin</b> והסיסמה{" "}

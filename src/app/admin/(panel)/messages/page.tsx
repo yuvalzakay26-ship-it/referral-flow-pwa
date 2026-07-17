@@ -92,7 +92,7 @@ export default function MessagesPage() {
           {TEMPLATE_VARIABLES.map((v) => (
             <div
               key={v.token}
-              className="flex items-center gap-2 rounded-xl border border-white/8 bg-white/[0.03] px-3 py-1.5"
+              className="flex items-center gap-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-muted)] px-3 py-1.5"
             >
               <code className="font-mono text-sm text-[var(--rf-cyan)]">
                 {v.token}
@@ -147,7 +147,7 @@ export default function MessagesPage() {
                     <span className="text-sm font-medium text-[var(--rf-text)]">
                       תצוגה מקדימה
                     </span>
-                    <div className="whitespace-pre-wrap rounded-2xl border border-emerald-400/20 bg-emerald-500/5 px-4 py-3 text-sm leading-relaxed text-[var(--rf-text)]">
+                    <div className="whitespace-pre-wrap rounded-2xl border border-[color-mix(in_srgb,var(--rf-success)_30%,transparent)] bg-[color-mix(in_srgb,var(--rf-success)_7%,transparent)] px-4 py-3 text-sm leading-relaxed text-[var(--rf-text)]">
                       {resolved}
                     </div>
                   </div>

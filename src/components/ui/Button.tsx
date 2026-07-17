@@ -14,12 +14,12 @@ export interface ButtonProps
 const variants: Record<Variant, string> = {
   gradient: "btn-gradient font-semibold",
   solid:
-    "bg-[var(--rf-surface-2)] text-[var(--rf-text)] border border-white/10 hover:bg-[var(--rf-surface-2)]/70",
+    "bg-[var(--rf-surface-2)] text-[var(--rf-text)] border border-[var(--border)] hover:bg-[var(--hover-background-strong)]",
   outline:
-    "border border-white/15 text-[var(--rf-text)] hover:bg-white/5 hover:border-white/25",
-  ghost: "text-[var(--rf-text)] hover:bg-white/5",
+    "border border-[var(--border-strong)] text-[var(--rf-text)] hover:bg-[var(--hover-background)] hover:border-[var(--rf-purple)]",
+  ghost: "text-[var(--rf-text)] hover:bg-[var(--hover-background)]",
   danger:
-    "bg-[var(--rf-danger)]/15 text-red-300 border border-red-400/30 hover:bg-[var(--rf-danger)]/25",
+    "bg-[color-mix(in_srgb,var(--rf-danger)_14%,transparent)] text-[var(--rf-danger)] border border-[color-mix(in_srgb,var(--rf-danger)_35%,transparent)] hover:bg-[color-mix(in_srgb,var(--rf-danger)_24%,transparent)]",
 };
 
 const sizes: Record<Size, string> = {

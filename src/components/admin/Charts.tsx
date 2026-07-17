@@ -1,15 +1,16 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
+/** All token-driven, so series stay legible against either appearance. */
 const PALETTE = [
   "var(--rf-magenta)",
   "var(--rf-purple)",
   "var(--rf-blue)",
   "var(--rf-cyan)",
-  "#22C55E",
-  "#F59E0B",
-  "#EF4444",
-  "#94A3B8",
+  "var(--rf-success)",
+  "var(--rf-warning)",
+  "var(--rf-danger)",
+  "var(--rf-text-muted)",
 ];
 
 export interface ChartDatum {
@@ -39,7 +40,7 @@ export function BarList({
                 {d.value}
               </span>
             </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-white/5">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--surface-muted)]">
               <div
                 className="h-full rounded-full transition-all"
                 style={{
@@ -54,7 +55,7 @@ export function BarList({
           <Link
             key={d.label}
             href={d.href}
-            className="block rounded-lg p-1 -m-1 transition-colors hover:bg-white/[0.04] focus-ring"
+            className="block rounded-lg p-1 -m-1 transition-colors hover:bg-[var(--hover-background)] focus-ring"
           >
             {row}
           </Link>
@@ -129,7 +130,7 @@ export function DonutChart({
               {d.href ? (
                 <Link
                   href={d.href}
-                  className="flex items-center gap-2 rounded-lg px-2 py-1 -mx-2 transition-colors hover:bg-white/[0.04] focus-ring"
+                  className="flex items-center gap-2 rounded-lg px-2 py-1 -mx-2 transition-colors hover:bg-[var(--hover-background)] focus-ring"
                 >
                   {content}
                 </Link>

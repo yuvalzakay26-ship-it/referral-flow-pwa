@@ -6,7 +6,7 @@ export function AnimatedBackground() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden opacity-[var(--decor-opacity)]"
     >
       <div
         className="animate-float absolute -right-24 -top-24 h-72 w-72 rounded-full blur-3xl"

@@ -243,7 +243,7 @@ export default function SettingsPage() {
             <Database size={18} className="text-[var(--rf-text-muted)]" />
           </CardHeader>
           <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between rounded-xl border border-white/8 bg-white/[0.02] px-4 py-3">
+            <div className="flex items-center justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-muted)] px-4 py-3">
               <span className="flex items-center gap-2 text-sm text-[var(--rf-text)]">
                 <Database size={16} className="text-[var(--rf-text-muted)]" />
                 חיבור Supabase
@@ -251,15 +251,15 @@ export default function SettingsPage() {
               <span
                 className={
                   USE_MOCK_DATA
-                    ? "rounded-full border border-amber-400/30 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-300"
-                    : "rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300"
+                    ? "rf-badge badge-amber rounded-full border px-3 py-1 text-xs font-medium"
+                    : "rf-badge badge-emerald rounded-full border px-3 py-1 text-xs font-medium"
                 }
               >
                 {USE_MOCK_DATA ? "לא מחובר (מצב הדגמה)" : "מחובר"}
               </span>
             </div>
             {USE_MOCK_DATA && (
-              <p className="flex items-start gap-2 rounded-xl border border-amber-400/25 bg-amber-500/10 px-4 py-3 text-sm leading-relaxed text-amber-100">
+              <p className="rf-badge badge-amber flex items-start gap-2 rounded-xl border px-4 py-3 text-sm leading-relaxed">
                 <ShieldAlert size={16} className="mt-0.5 flex-none" />
                 {MOCK_MODE_WARNING} ההתחברות הנוכחית היא לצורכי פיתוח בלבד ואינה
                 מאובטחת לייצור.
@@ -279,7 +279,7 @@ export default function SettingsPage() {
               <InstallCard />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-xl border border-white/8 bg-white/[0.02] p-4">
+              <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-muted)] p-4">
                 <h4 className="mb-2 font-bold text-[var(--rf-text)]">
                   אנדרואיד (Chrome)
                 </h4>
@@ -289,7 +289,7 @@ export default function SettingsPage() {
                   <li>אשרו את ההתקנה.</li>
                 </ol>
               </div>
-              <div className="rounded-xl border border-white/8 bg-white/[0.02] p-4">
+              <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-muted)] p-4">
                 <h4 className="mb-2 font-bold text-[var(--rf-text)]">
                   אייפון (Safari)
                 </h4>
@@ -326,7 +326,7 @@ export default function SettingsPage() {
             <CardTitle>אודות</CardTitle>
             <Info size={18} className="text-[var(--rf-text-muted)]" />
           </CardHeader>
-          <p className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-relaxed text-[var(--rf-text-muted)]">
+          <p className="rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-3 text-sm leading-relaxed text-[var(--rf-text-muted)]">
             {NON_OFFICIAL_NOTICE}
           </p>
         </Card>
@@ -337,7 +337,7 @@ export default function SettingsPage() {
         <div className="glass-elevated flex items-center justify-between gap-3 rounded-2xl px-4 py-3">
           <div className="min-h-6">
             {saved && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-medium text-emerald-300">
+              <span className="rf-badge badge-emerald inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium">
                 <CheckCircle2 size={14} />
                 ההגדרות נשמרו
               </span>

@@ -135,7 +135,7 @@ export function FollowUpList({
                   aria-haspopup="menu"
                   aria-expanded={menuOpen}
                   onClick={() => setOpenId(menuOpen ? null : c.id)}
-                  className="rounded-lg p-2 text-[var(--rf-text-muted)] transition-colors hover:bg-white/5 hover:text-[var(--rf-text)] focus-ring"
+                  className="rounded-lg p-2 text-[var(--rf-text-muted)] transition-colors hover:bg-[var(--hover-background)] hover:text-[var(--rf-text)] focus-ring"
                 >
                   <MoreVertical size={18} />
                 </button>
@@ -200,7 +200,7 @@ function MenuLink({
       href={href}
       role="menuitem"
       {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-      className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-[var(--rf-text)] transition-colors hover:bg-white/5 focus-ring"
+      className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-[var(--rf-text)] transition-colors hover:bg-[var(--hover-background)] focus-ring"
     >
       <Icon size={16} className="text-[var(--rf-text-muted)]" />
       {label}
@@ -222,7 +222,7 @@ function MenuButton({
       type="button"
       role="menuitem"
       onClick={onClick}
-      className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-right text-sm text-[var(--rf-text)] transition-colors hover:bg-white/5 focus-ring"
+      className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-right text-sm text-[var(--rf-text)] transition-colors hover:bg-[var(--hover-background)] focus-ring"
     >
       <Icon size={16} className="text-[var(--rf-text-muted)]" />
       {label}

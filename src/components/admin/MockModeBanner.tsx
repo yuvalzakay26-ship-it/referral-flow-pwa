@@ -16,16 +16,10 @@ export function MockModeBanner() {
   return (
     <div
       role="status"
-      className="mb-5 flex items-start gap-3 rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3"
+      className="rf-badge badge-amber mb-5 flex items-start gap-3 rounded-2xl border px-4 py-3"
     >
-      <AlertTriangle
-        size={18}
-        className="mt-0.5 flex-none text-amber-300"
-        aria-hidden
-      />
-      <p className="text-sm font-medium leading-relaxed text-amber-100">
-        {MOCK_MODE_WARNING}
-      </p>
+      <AlertTriangle size={18} className="mt-0.5 flex-none" aria-hidden />
+      <p className="text-sm font-medium leading-relaxed">{MOCK_MODE_WARNING}</p>
     </div>
   );
 }

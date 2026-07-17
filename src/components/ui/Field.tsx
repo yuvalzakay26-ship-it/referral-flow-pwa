@@ -33,7 +33,7 @@ export function Field({
         <p className="text-xs text-[var(--rf-text-muted)]">{hint}</p>
       )}
       {error && (
-        <p className="text-xs font-medium text-red-400" role="alert">
+        <p className="text-xs font-medium text-[var(--rf-danger)]" role="alert">
           {error}
         </p>
       )}
@@ -42,7 +42,7 @@ export function Field({
 }
 
 const controlBase =
-  "w-full rounded-xl border border-white/10 bg-[var(--rf-surface-2)]/60 px-3.5 text-[var(--rf-text)] placeholder:text-[var(--rf-text-muted)]/60 transition-colors focus:border-[var(--rf-cyan)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--rf-cyan)]/20";
+  "w-full rounded-xl border border-[var(--border)] bg-[var(--input-background)] px-3.5 text-[var(--rf-text)] placeholder:text-[var(--rf-text-muted)] transition-colors focus:border-[var(--focus-ring)] focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--focus-ring)_28%,transparent)] disabled:opacity-60 disabled:cursor-not-allowed";
 
 export const TextInput = function TextInput({
   className,

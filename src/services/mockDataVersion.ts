@@ -20,6 +20,8 @@
  * settings are all preserved: none of them carry demo candidate records.
  */
 
+import { THEME_STORAGE_KEY } from "@/lib/theme";
+
 const VERSION_KEY = "referralflow_mock_data_version";
 
 /** Bump this when a future change must invalidate browser-side mock candidate data. */
@@ -27,10 +29,12 @@ const CURRENT_VERSION = 2;
 
 /**
  * Keys that must survive the reset even though they match the candidate pattern
- * below. The draft is the administrator's own unsaved typing, not demo data.
+ * below. The draft is the administrator's own unsaved typing, not demo data;
+ * the theme is a device preference that no candidate migration may reset.
  */
 const PRESERVE = new Set([
   VERSION_KEY,
+  THEME_STORAGE_KEY,
   "rf_admin_authed",
   "rf_new_candidate_draft",
 ]);

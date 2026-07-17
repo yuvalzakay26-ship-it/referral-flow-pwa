@@ -176,7 +176,7 @@ export default function CandidateDetailsPage() {
                 <CardTitle>פרטים אישיים</CardTitle>
                 <User size={18} className="text-[var(--rf-text-muted)]" />
               </CardHeader>
-              <div className="divide-y divide-white/5">
+              <div className="divide-y divide-[var(--border-subtle)]">
                 <Row icon={Phone} label="טלפון" value={<span dir="ltr">{c.phone}</span>} />
                 <Row icon={Mail} label="אימייל" value={<span dir="ltr">{c.email}</span>} />
                 <Row icon={MapPin} label="עיר / אזור" value={c.city} />
@@ -208,7 +208,7 @@ export default function CandidateDetailsPage() {
                 <CardTitle>פרטים מקצועיים</CardTitle>
                 <Briefcase size={18} className="text-[var(--rf-text-muted)]" />
               </CardHeader>
-              <div className="divide-y divide-white/5">
+              <div className="divide-y divide-[var(--border-subtle)]">
                 <Row icon={Briefcase} label="תחום" value={c.professional_field} />
                 <Row label="תפקיד נוכחי" value={c.current_role} />
                 <Row label="שנות ניסיון" value={c.years_of_experience} />
@@ -227,7 +227,7 @@ export default function CandidateDetailsPage() {
                 <p className="mb-1.5 text-xs text-[var(--rf-text-muted)]">סוגי משרה</p>
                 <div className="flex flex-wrap gap-1.5">
                   {c.preferred_job_types.map((t) => (
-                    <span key={t} className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-[var(--rf-text)]">
+                    <span key={t} className="rounded-lg border border-[var(--border)] bg-[var(--surface-muted)] px-2.5 py-1 text-xs text-[var(--rf-text)]">
                       {getJobTypeLabel(t)}
                     </span>
                   ))}
@@ -237,7 +237,7 @@ export default function CandidateDetailsPage() {
                 <p className="mb-1.5 text-xs text-[var(--rf-text-muted)]">אזורי עבודה</p>
                 <div className="flex flex-wrap gap-1.5">
                   {c.preferred_locations.map((l) => (
-                    <span key={l} className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-[var(--rf-text)]">
+                    <span key={l} className="rounded-lg border border-[var(--border)] bg-[var(--surface-muted)] px-2.5 py-1 text-xs text-[var(--rf-text)]">
                       {l}
                     </span>
                   ))}
@@ -248,7 +248,7 @@ export default function CandidateDetailsPage() {
                   <p className="mb-1.5 text-xs text-[var(--rf-text-muted)]">כישורים / מילות מפתח</p>
                   <div className="flex flex-wrap gap-1.5">
                     {c.technical_skills.map((s) => (
-                      <span key={s} className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-[var(--rf-text)]">
+                      <span key={s} className="rounded-lg border border-[var(--border)] bg-[var(--surface-muted)] px-2.5 py-1 text-xs text-[var(--rf-text)]">
                         {s}
                       </span>
                     ))}
@@ -258,7 +258,7 @@ export default function CandidateDetailsPage() {
               {c.professional_summary && (
                 <div>
                   <p className="mb-1.5 text-xs text-[var(--rf-text-muted)]">תקציר מקצועי</p>
-                  <p className="rounded-xl border border-white/8 bg-white/[0.02] p-3 text-sm leading-relaxed text-[var(--rf-text)]">
+                  <p className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-muted)] p-3 text-sm leading-relaxed text-[var(--rf-text)]">
                     {c.professional_summary}
                   </p>
                 </div>
@@ -293,7 +293,7 @@ export default function CandidateDetailsPage() {
               <CardHeader>
                 <CardTitle>מקור, קו״ח וסטטוס עסקי</CardTitle>
               </CardHeader>
-              <div className="divide-y divide-white/5">
+              <div className="divide-y divide-[var(--border-subtle)]">
                 <Row icon={Radio} label="מקור" value={getSourceMeta(c.source).label} />
                 {c.source_details && (
                   <Row label="פרטי מקור" value={c.source_details} />

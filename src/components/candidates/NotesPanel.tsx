@@ -35,7 +35,7 @@ export function NotesPanel({ candidateId, notes, onAdded }: Props) {
 
   return (
     <div>
-      <div className="mb-3 flex items-center gap-2 rounded-lg border border-amber-400/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-200/80">
+      <div className="rf-badge badge-amber mb-3 flex items-center gap-2 rounded-lg border px-3 py-2 text-xs">
         <StickyNote size={14} className="flex-none" />
         הערות פנימיות — אינן נחשפות למועמדים.
       </div>
@@ -73,7 +73,7 @@ export function NotesPanel({ candidateId, notes, onAdded }: Props) {
           notes.map((n) => (
             <li
               key={n.id}
-              className="rounded-xl border border-white/8 bg-white/[0.02] p-3"
+              className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-muted)] p-3"
             >
               <p className="text-sm leading-relaxed text-[var(--rf-text)]">
                 {n.body}

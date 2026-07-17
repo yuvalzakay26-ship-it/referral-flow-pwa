@@ -79,7 +79,7 @@ export function StatusChangeModal({
             ))}
           </SelectInput>
         </Field>
-        <p className="rounded-lg border border-white/8 bg-white/[0.03] px-3 py-2 text-xs leading-relaxed text-[var(--rf-text-muted)]">
+        <p className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-muted)] px-3 py-2 text-xs leading-relaxed text-[var(--rf-text-muted)]">
           {getStatusMeta(status).description}
         </p>
         <Field label="הערה (רשות)" htmlFor="note">

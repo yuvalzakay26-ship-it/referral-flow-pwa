@@ -23,6 +23,7 @@ import {
   type AdminNavItem,
 } from "./AdminNav";
 import { MobileNav } from "./MobileNav";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { cn } from "@/lib/utils";
 import { isAuthed, logout } from "@/lib/auth";
 import { runMockDataMigration } from "@/services/mockDataVersion";
@@ -100,7 +101,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-dvh">
       {/* Desktop sidebar */}
-      <aside className="sticky top-0 hidden h-dvh w-64 flex-none flex-col border-l border-white/5 glass lg:flex">
+      <aside className="sticky top-0 hidden h-dvh w-64 flex-none flex-col border-l border-[var(--border-subtle)] glass lg:flex">
         <div className="p-5">
           <Link href="/admin" className="focus-ring rounded-xl">
             <Logo size={36} subtitle="ניהול" />
@@ -111,13 +112,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <SidebarLink key={item.href} item={item} active={activeHref === item.href} />
           ))}
         </nav>
-        <div className="mt-2 flex flex-col gap-1 border-t border-white/8 px-3 pt-3">
+        <div className="mt-2 flex flex-col gap-1 border-t border-[var(--border-subtle)] px-3 pt-3">
           {ADMIN_NAV_SECONDARY.map((item) => (
             <SidebarLink key={item.href} item={item} active={activeHref === item.href} />
           ))}
           <button
             onClick={handleLogout}
-            className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[var(--rf-text-muted)] transition-all hover:bg-white/5 hover:text-red-300 focus-ring"
+            className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[var(--rf-text-muted)] transition-all hover:bg-[var(--hover-background)] hover:text-[var(--rf-danger)] focus-ring"
           >
             <LogOut size={18} />
             יציאה
@@ -141,9 +142,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 אזור ניהול פרטי
               </p>
             </div>
-            <Link href="/admin" className="focus-ring rounded-lg lg:hidden" aria-label="ReferralFlow">
-              <LogoMark size={30} />
-            </Link>
+            <div className="flex flex-none items-center gap-2">
+              <ThemeToggle />
+              <Link
+                href="/admin"
+                className="focus-ring rounded-lg lg:hidden"
+                aria-label="ReferralFlow"
+              >
+                <LogoMark size={30} />
+              </Link>
+            </div>
           </div>
         </header>
 
@@ -163,16 +171,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
-            className="absolute inset-0 bg-black/65 backdrop-blur-sm"
+            className="absolute inset-0 bg-[var(--overlay)] backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="absolute inset-y-0 right-0 flex w-72 max-w-[82%] flex-col glass-elevated">
+          <div className="drawer-panel absolute inset-y-0 right-0 flex w-72 max-w-[82%] flex-col">
             <div className="flex items-center justify-between p-5 pb-4">
               <Logo size={32} subtitle="ניהול" />
               <button
                 onClick={() => setMobileOpen(false)}
                 aria-label="סגירה"
-                className="rounded-lg p-2 text-[var(--rf-text)] hover:bg-white/5 focus-ring"
+                className="rounded-lg p-2 text-[var(--rf-text)] hover:bg-[var(--hover-background)] focus-ring"
               >
                 <X size={20} />
               </button>
@@ -200,7 +208,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 ))}
               </nav>
 
-              <div className="my-3 border-t border-white/8" />
+              <div className="my-3 border-t border-[var(--border-subtle)]" />
 
               <nav className="flex flex-col gap-0.5">
                 {ADMIN_NAV_SECONDARY.map((item) => (
@@ -212,7 +220,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 ))}
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-medium text-[var(--rf-text-muted)] hover:bg-white/5 hover:text-red-300 focus-ring"
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-medium text-[var(--rf-text-muted)] hover:bg-[var(--hover-background)] hover:text-[var(--rf-danger)] focus-ring"
                 >
                   <LogOut size={18} />
                   יציאה
@@ -239,8 +247,8 @@ function SidebarLink({ item, active }: { item: AdminNavItem; active: boolean }) 
       className={cn(
         "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all focus-ring",
         active
-          ? "text-white shadow-[0_0_0_1px_color-mix(in_srgb,var(--rf-purple)_40%,transparent)]"
-          : "text-[var(--rf-text-muted)] hover:bg-white/5 hover:text-[var(--rf-text)]",
+          ? "text-[var(--rf-text)] shadow-[0_0_0_1px_color-mix(in_srgb,var(--rf-purple)_40%,transparent)]"
+          : "text-[var(--rf-text-muted)] hover:bg-[var(--hover-background)] hover:text-[var(--rf-text)]",
       )}
       style={active ? { background: "var(--rf-gradient-soft)" } : undefined}
     >
@@ -259,8 +267,8 @@ function DrawerLink({ item, active }: { item: AdminNavItem; active: boolean }) {
       className={cn(
         "flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-medium transition-all focus-ring",
         active
-          ? "text-white"
-          : "text-[var(--rf-text)] hover:bg-white/5",
+          ? "text-[var(--rf-text)]"
+          : "text-[var(--rf-text)] hover:bg-[var(--hover-background)]",
       )}
       style={active ? { background: "var(--rf-gradient-soft)" } : undefined}
     >
@@ -274,8 +282,8 @@ function DrawerLink({ item, active }: { item: AdminNavItem; active: boolean }) {
 function MockChip() {
   if (!USE_MOCK_DATA) return null;
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-amber-400/25 bg-amber-500/10 px-3 py-1.5 text-[11px] font-medium text-amber-200/90">
-      <span className="h-1.5 w-1.5 rounded-full bg-amber-300" />
+    <span className="rf-badge badge-amber inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-medium">
+      <span className="h-1.5 w-1.5 flex-none rounded-full bg-[var(--rf-warning)]" />
       מצב הדגמה — נתונים זמניים
     </span>
   );

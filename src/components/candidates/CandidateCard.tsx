@@ -12,7 +12,7 @@ export function CandidateCard({ candidate: c }: { candidate: Candidate }) {
   return (
     <Link
       href={`/admin/candidates/${c.id}`}
-      className="glass block rounded-2xl p-4 transition-colors hover:bg-white/[0.05] focus-ring"
+      className="glass block rounded-2xl p-4 transition-colors hover:bg-[var(--hover-background)] focus-ring"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -55,7 +55,7 @@ export function CandidateCard({ candidate: c }: { candidate: Candidate }) {
         )}
       </div>
 
-      <div className="mt-3 flex items-center justify-between border-t border-white/5 pt-2.5 text-xs text-[var(--rf-text-muted)]">
+      <div className="mt-3 flex items-center justify-between border-t border-[var(--border-subtle)] pt-2.5 text-xs text-[var(--rf-text-muted)]">
         <span>{getSourceMeta(c.source).label}</span>
         <span>התקבל {formatDate(c.date_received ?? c.created_at)}</span>
       </div>

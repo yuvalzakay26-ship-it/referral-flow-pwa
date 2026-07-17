@@ -30,7 +30,7 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-[var(--overlay)] backdrop-blur-sm"
           />
           <motion.div
             role="dialog"
@@ -41,19 +41,19 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
             transition={{ duration: 0.2 }}
             className="glass-elevated relative z-10 flex max-h-[90dvh] w-full flex-col rounded-t-3xl sm:m-4 sm:w-full sm:max-w-lg sm:rounded-3xl"
           >
-            <div className="flex items-center justify-between border-b border-white/8 p-5">
+            <div className="flex items-center justify-between border-b border-[var(--border-subtle)] p-5">
               <h3 className="text-lg font-bold text-[var(--rf-text)]">{title}</h3>
               <button
                 onClick={onClose}
                 aria-label="סגירה"
-                className="rounded-lg p-1.5 text-[var(--rf-text-muted)] hover:bg-white/5 focus-ring"
+                className="rounded-lg p-1.5 text-[var(--rf-text-muted)] hover:bg-[var(--hover-background)] hover:text-[var(--rf-text)] focus-ring"
               >
                 <X size={20} />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-5">{children}</div>
             {footer && (
-              <div className="border-t border-white/8 p-5">{footer}</div>
+              <div className="border-t border-[var(--border-subtle)] p-5">{footer}</div>
             )}
           </motion.div>
         </div>

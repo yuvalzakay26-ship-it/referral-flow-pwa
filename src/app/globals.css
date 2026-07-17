@@ -2,42 +2,212 @@
 
 /* ==========================================================================
    ReferralFlow design tokens
+
+   Two appearances only — dark (default, primary brand) and light (premium).
+   There is deliberately no system/auto mode.
+
+   Components never hard-code a mode-specific color: they resolve everything
+   through the semantic tokens below, so an appearance is defined entirely by
+   the [data-theme="dark"] / [data-theme="light"] blocks. The `data-theme`
+   attribute is always present — it is server-rendered as "dark" and corrected
+   by the inline script in the document head before first paint.
    ========================================================================== */
+
+/* --- Mode-independent -------------------------------------------------- */
 :root {
-  /* Core palette */
-  --rf-bg: #070a16;
-  --rf-surface: #10152b;
-  --rf-surface-2: #171d38;
+  /* Brand ramp — the signature gradient keeps this identity in both modes. */
+  --rf-grad-1: #f72585;
+  --rf-grad-2: #8b5cf6;
+  --rf-grad-3: #2563eb;
+  --rf-grad-4: #22d3ee;
+
+  --rf-radius: 1.25rem;
+}
+
+/* --- Dark — the primary branded appearance ------------------------------ */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Accents — tuned per mode to stay legible on that mode's surfaces. */
   --rf-magenta: #f72585;
   --rf-purple: #8b5cf6;
   --rf-blue: #2563eb;
   --rf-cyan: #22d3ee;
+
+  /* Semantic status hues */
   --rf-success: #22c55e;
   --rf-warning: #f59e0b;
   --rf-danger: #ef4444;
+
+  /* Surfaces */
+  --rf-bg: #070a16;
+  --rf-surface: #10152b;
+  --rf-surface-2: #171d38;
+
+  /* Text */
   --rf-text: #f8fafc;
   --rf-text-muted: #94a3b8;
 
-  /* Semantic */
+  /* Semantic surface tokens */
   --background: var(--rf-bg);
   --foreground: var(--rf-text);
+  --surface: var(--rf-surface);
+  --surface-elevated: var(--rf-surface-2);
+  --surface-muted: color-mix(in srgb, var(--rf-text) 5%, transparent);
+
   --border: color-mix(in srgb, var(--rf-text) 10%, transparent);
+  --border-strong: color-mix(in srgb, var(--rf-text) 18%, transparent);
+  --border-subtle: color-mix(in srgb, var(--rf-text) 8%, transparent);
+  --hover-background: color-mix(in srgb, var(--rf-text) 6%, transparent);
+  --hover-background-strong: color-mix(in srgb, var(--rf-text) 10%, transparent);
+  --input-background: color-mix(in srgb, var(--rf-surface-2) 60%, transparent);
+  --header-background: color-mix(in srgb, var(--rf-bg) 88%, transparent);
+  --navigation-background: color-mix(in srgb, var(--rf-surface) 92%, transparent);
+  --drawer-background: color-mix(in srgb, var(--rf-surface-2) 92%, transparent);
+  --overlay: rgb(0 0 0 / 0.65);
+  --focus-ring: var(--rf-cyan);
+  --shadow-color: rgb(0 0 0 / 0.55);
+  --primary: var(--rf-magenta);
 
   /* Signature gradients */
   --rf-gradient: linear-gradient(
     135deg,
-    var(--rf-magenta) 0%,
-    var(--rf-purple) 45%,
-    var(--rf-blue) 75%,
-    var(--rf-cyan) 100%
+    var(--rf-grad-1) 0%,
+    var(--rf-grad-2) 45%,
+    var(--rf-grad-3) 75%,
+    var(--rf-grad-4) 100%
   );
   --rf-gradient-soft: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--rf-magenta) 22%, transparent),
-    color-mix(in srgb, var(--rf-cyan) 22%, transparent)
+    color-mix(in srgb, var(--rf-grad-1) 22%, transparent),
+    color-mix(in srgb, var(--rf-grad-4) 22%, transparent)
   );
+  --accent-gradient: var(--rf-gradient);
 
-  --rf-radius: 1.25rem;
+  /* Glass panels — glow-led in dark. */
+  --glass-bg: color-mix(in srgb, var(--rf-surface) 70%, transparent);
+  --glass-border: color-mix(in srgb, var(--rf-text) 8%, transparent);
+  --glass-shadow: none;
+  --glass-elevated-bg: color-mix(in srgb, var(--rf-surface-2) 80%, transparent);
+  --glass-elevated-border: color-mix(in srgb, var(--rf-text) 10%, transparent);
+  --glass-elevated-shadow: none;
+  --glass-blur: 16px;
+
+  /* Ambient page glows */
+  --ambient-1: 11%;
+  --ambient-2: 11%;
+  --ambient-3: 10%;
+
+  /* Strength of the floating decorative blobs (AnimatedBackground). */
+  --decor-opacity: 1;
+
+  /* Branded button glow */
+  --btn-glow: 0 8px 30px color-mix(in srgb, var(--rf-grad-1) 30%, transparent);
+  --btn-glow-hover: 0 10px 40px color-mix(in srgb, var(--rf-grad-2) 40%, transparent);
+
+  /* Badge tinting (see .rf-badge) */
+  --badge-tint: 15%;
+  --badge-border: 30%;
+  --badge-ink: 70%;
+
+  --selection-bg: color-mix(in srgb, var(--rf-magenta) 40%, transparent);
+  --selection-fg: #fff;
+
+  --skeleton-base: color-mix(in srgb, var(--rf-surface-2) 60%, transparent);
+  --skeleton-sheen: color-mix(in srgb, var(--rf-text) 8%, transparent);
+}
+
+/* --- Light — premium, not an inversion ---------------------------------- */
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* Accents deepened so they carry contrast against white surfaces. */
+  --rf-magenta: #d0146a;
+  --rf-purple: #6d28d9;
+  --rf-blue: #1d4ed8;
+  --rf-cyan: #0e7490;
+
+  --rf-success: #15803d;
+  --rf-warning: #b45309;
+  --rf-danger: #dc2626;
+
+  /* Surfaces: cool-gray page, white cards, lavender secondary. */
+  --rf-bg: #f2f5fb;
+  --rf-surface: #ffffff;
+  --rf-surface-2: #eaeff9;
+
+  /* Text: deep navy over slate. */
+  --rf-text: #0f1a3c;
+  --rf-text-muted: #59657f;
+
+  --background: var(--rf-bg);
+  --foreground: var(--rf-text);
+  --surface: var(--rf-surface);
+  --surface-elevated: var(--rf-surface-2);
+  --surface-muted: #eef2fa;
+
+  --border: color-mix(in srgb, var(--rf-text) 12%, transparent);
+  --border-strong: color-mix(in srgb, var(--rf-text) 22%, transparent);
+  --border-subtle: color-mix(in srgb, var(--rf-text) 8%, transparent);
+  --hover-background: color-mix(in srgb, var(--rf-text) 5%, transparent);
+  --hover-background-strong: color-mix(in srgb, var(--rf-text) 9%, transparent);
+  /* Tinted, never white-on-white: inputs stay visible inside white cards. */
+  --input-background: #f4f7fd;
+  --header-background: color-mix(in srgb, #ffffff 90%, transparent);
+  --navigation-background: color-mix(in srgb, #ffffff 94%, transparent);
+  --drawer-background: color-mix(in srgb, #ffffff 96%, transparent);
+  --overlay: rgb(15 26 60 / 0.4);
+  --focus-ring: var(--rf-purple);
+  --shadow-color: rgb(15 26 60 / 0.1);
+  --primary: var(--rf-magenta);
+
+  /* Gradient stops deepened so white text on gradient stays readable. */
+  --rf-gradient: linear-gradient(
+    135deg,
+    #e0116e 0%,
+    #7c3aed 45%,
+    #2563eb 75%,
+    #0e7490 100%
+  );
+  --rf-gradient-soft: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--rf-grad-1) 12%, transparent),
+    color-mix(in srgb, var(--rf-grad-3) 12%, transparent)
+  );
+  --accent-gradient: var(--rf-gradient);
+
+  /* Glass panels — shadow-led in light, glow removed. */
+  --glass-bg: #ffffff;
+  --glass-border: color-mix(in srgb, var(--rf-text) 9%, transparent);
+  --glass-shadow: 0 1px 2px rgb(15 26 60 / 0.04),
+    0 10px 26px -14px rgb(15 26 60 / 0.16);
+  --glass-elevated-bg: #ffffff;
+  --glass-elevated-border: color-mix(in srgb, var(--rf-text) 11%, transparent);
+  --glass-elevated-shadow: 0 2px 6px rgb(15 26 60 / 0.06),
+    0 24px 60px -22px rgb(15 26 60 / 0.28);
+  --glass-blur: 12px;
+
+  /* Barely-there brand wash instead of glows. */
+  --ambient-1: 5%;
+  --ambient-2: 5%;
+  --ambient-3: 4%;
+
+  /* Same composition, dialed right down — full-strength blobs read as garish
+     on a light page, where the shadows already carry the depth. */
+  --decor-opacity: 0.3;
+
+  --btn-glow: 0 6px 18px -6px rgb(15 26 60 / 0.28);
+  --btn-glow-hover: 0 10px 26px -8px rgb(15 26 60 / 0.34);
+
+  --badge-tint: 13%;
+  --badge-border: 36%;
+  --badge-ink: 45%;
+
+  --selection-bg: color-mix(in srgb, var(--rf-magenta) 22%, transparent);
+  --selection-fg: var(--rf-text);
+
+  --skeleton-base: #e7ecf6;
+  --skeleton-sheen: #f4f7fd;
 }
 
 /* Expose tokens to Tailwind's utility system (v4 @theme) */
@@ -46,11 +216,13 @@
   --color-foreground: var(--foreground);
   --color-surface: var(--rf-surface);
   --color-surface-2: var(--rf-surface-2);
+  --color-surface-muted: var(--surface-muted);
   --color-magenta: var(--rf-magenta);
   --color-purple: var(--rf-purple);
   --color-brand-blue: var(--rf-blue);
   --color-cyan: var(--rf-cyan);
   --color-muted: var(--rf-text-muted);
+  --color-hairline: var(--border);
   --font-sans: var(--font-heebo), system-ui, sans-serif;
 }
 
@@ -64,6 +236,7 @@
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  background: var(--background);
 }
 
 body {
@@ -75,6 +248,7 @@ body {
   /* Safe-area support for Android / iPhone notches */
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 /* Ambient background glows */
@@ -84,15 +258,15 @@ body::before {
   inset: 0;
   z-index: -2;
   background:
-    radial-gradient(60rem 60rem at 85% -10%, color-mix(in srgb, var(--rf-magenta) 11%, transparent), transparent 60%),
-    radial-gradient(50rem 50rem at 10% 10%, color-mix(in srgb, var(--rf-purple) 11%, transparent), transparent 55%),
-    radial-gradient(60rem 60rem at 50% 120%, color-mix(in srgb, var(--rf-blue) 10%, transparent), transparent 60%);
+    radial-gradient(60rem 60rem at 85% -10%, color-mix(in srgb, var(--rf-grad-1) var(--ambient-1), transparent), transparent 60%),
+    radial-gradient(50rem 50rem at 10% 10%, color-mix(in srgb, var(--rf-grad-2) var(--ambient-2), transparent), transparent 55%),
+    radial-gradient(60rem 60rem at 50% 120%, color-mix(in srgb, var(--rf-grad-3) var(--ambient-3), transparent), transparent 60%);
   pointer-events: none;
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--rf-magenta) 40%, transparent);
-  color: #fff;
+  background: var(--selection-bg);
+  color: var(--selection-fg);
 }
 
 /* Scrollbar */
@@ -113,24 +287,27 @@ body::before {
    ========================================================================== */
 @layer components {
   .glass {
-    background: color-mix(in srgb, var(--rf-surface) 70%, transparent);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid color-mix(in srgb, var(--rf-text) 8%, transparent);
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
   }
 
   .glass-elevated {
-    background: color-mix(in srgb, var(--rf-surface-2) 80%, transparent);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid color-mix(in srgb, var(--rf-text) 10%, transparent);
+    background: var(--glass-elevated-bg);
+    backdrop-filter: blur(calc(var(--glass-blur) + 4px));
+    -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 4px));
+    border: 1px solid var(--glass-elevated-border);
+    box-shadow: var(--glass-elevated-shadow);
   }
 
   /* Card with an animated gradient border */
   .gradient-border {
     position: relative;
     border-radius: var(--rf-radius);
-    background: color-mix(in srgb, var(--rf-surface) 80%, transparent);
+    background: var(--glass-bg);
+    box-shadow: var(--glass-shadow);
   }
   .gradient-border::before {
     content: "";
@@ -159,33 +336,38 @@ body::before {
     background: var(--rf-gradient);
     background-size: 200% 200%;
     color: #fff;
-    box-shadow: 0 8px 30px color-mix(in srgb, var(--rf-magenta) 30%, transparent);
+    box-shadow: var(--btn-glow);
     transition: background-position 0.4s ease, transform 0.2s ease, box-shadow 0.3s ease;
   }
   .btn-gradient:hover {
     background-position: 100% 100%;
-    box-shadow: 0 10px 40px color-mix(in srgb, var(--rf-purple) 40%, transparent);
+    box-shadow: var(--btn-glow-hover);
   }
   .btn-gradient:active {
     transform: translateY(1px) scale(0.99);
   }
 
+  /* Dark: cyan halo. Light: a clean shadow — glow reads as haze on white. */
   .glow {
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--rf-cyan) 20%, transparent),
       0 0 40px color-mix(in srgb, var(--rf-cyan) 15%, transparent);
   }
+  [data-theme="light"] .glow {
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--rf-cyan) 22%, transparent),
+      0 12px 30px -14px rgb(15 26 60 / 0.25);
+  }
 
   .focus-ring:focus-visible {
-    outline: 2px solid var(--rf-cyan);
+    outline: 2px solid var(--focus-ring);
     outline-offset: 2px;
   }
 
   /* Compact, opaque admin top bar — never lets content show through it. */
   .admin-header {
-    background: color-mix(in srgb, var(--rf-bg) 88%, transparent);
+    background: var(--header-background);
     backdrop-filter: blur(12px) saturate(140%);
     -webkit-backdrop-filter: blur(12px) saturate(140%);
-    border-bottom: 1px solid color-mix(in srgb, var(--rf-text) 9%, transparent);
+    border-bottom: 1px solid var(--border-subtle);
   }
 
   /* Fixed mobile bottom navigation — opaque, safe-area aware. */
@@ -194,12 +376,92 @@ body::before {
     inset-inline: 0;
     bottom: 0;
     z-index: 40;
-    background: color-mix(in srgb, var(--rf-surface) 92%, transparent);
+    background: var(--navigation-background);
     backdrop-filter: blur(16px) saturate(140%);
     -webkit-backdrop-filter: blur(16px) saturate(140%);
-    border-top: 1px solid color-mix(in srgb, var(--rf-text) 10%, transparent);
+    border-top: 1px solid var(--border);
     padding-bottom: env(safe-area-inset-bottom);
   }
+
+  /* Mobile side drawer surface. */
+  .drawer-panel {
+    background: var(--drawer-background);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    border-inline-start: 1px solid var(--border);
+    box-shadow: var(--glass-elevated-shadow);
+  }
+
+  /*
+   * Status / eligibility badge. Each hue class sets --b; the tint, border and
+   * ink are derived from it per mode, so one hue definition serves both.
+   * Ink mixes the hue toward the mode's text color, which lightens it on dark
+   * and deepens it on light.
+   */
+  .rf-badge {
+    background: color-mix(in srgb, var(--b) var(--badge-tint), transparent);
+    border-color: color-mix(in srgb, var(--b) var(--badge-border), transparent);
+    color: color-mix(in srgb, var(--b) var(--badge-ink), var(--rf-text));
+  }
+  .badge-cyan { --b: #06b6d4; }
+  .badge-blue { --b: #3b82f6; }
+  .badge-amber { --b: #f59e0b; }
+  .badge-fuchsia { --b: #d946ef; }
+  .badge-purple { --b: #a855f7; }
+  .badge-indigo { --b: #6366f1; }
+  .badge-slate { --b: #64748b; }
+  .badge-emerald { --b: #10b981; }
+  .badge-orange { --b: #f97316; }
+  .badge-green { --b: #22c55e; }
+  .badge-zinc { --b: #71717a; }
+  .badge-red { --b: #ef4444; }
+
+  /*
+   * Theme-toggle glyphs. Both are always rendered, stacked in one grid cell,
+   * and swapped by data-theme rather than React state — so the right glyph is
+   * on screen at first paint and never flips after hydration.
+   */
+  .theme-icon {
+    grid-area: 1 / 1;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  [data-theme="dark"] .theme-icon-moon,
+  [data-theme="light"] .theme-icon-sun {
+    opacity: 0;
+    transform: scale(0.6) rotate(30deg);
+  }
+  [data-theme="dark"] .theme-icon-sun,
+  [data-theme="light"] .theme-icon-moon {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   Form controls
+   ========================================================================== */
+
+/* Keep autofilled inputs on the themed surface instead of the UA's yellow. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--rf-text);
+  -webkit-box-shadow: 0 0 0 1000px var(--input-background) inset;
+  caret-color: var(--rf-text);
+  transition: background-color 100000s ease-in-out 0s;
+}
+
+/* The native date/time picker glyph is black artwork; invert it on dark. */
+[data-theme="dark"] input::-webkit-calendar-picker-indicator {
+  filter: invert(1) opacity(0.65);
+}
+[data-theme="light"] input::-webkit-calendar-picker-indicator {
+  filter: opacity(0.55);
+}
+input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
 }
 
 /* ==========================================================================
@@ -229,9 +491,9 @@ body::before {
 .skeleton {
   background: linear-gradient(
     90deg,
-    color-mix(in srgb, var(--rf-surface-2) 60%, transparent) 25%,
-    color-mix(in srgb, var(--rf-text) 8%, transparent) 37%,
-    color-mix(in srgb, var(--rf-surface-2) 60%, transparent) 63%
+    var(--skeleton-base) 25%,
+    var(--skeleton-sheen) 37%,
+    var(--skeleton-base) 63%
   );
   background-size: 400% 100%;
   animation: rf-shimmer 1.4s ease infinite;

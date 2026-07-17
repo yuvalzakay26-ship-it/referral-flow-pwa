@@ -92,7 +92,7 @@ export default function AnalyticsPage() {
                     )}
                     <Link
                       href={href}
-                      className="group flex items-center gap-3 rounded-xl px-1 py-2 transition-colors hover:bg-white/[0.04] focus-ring"
+                      className="group flex items-center gap-3 rounded-xl px-1 py-2 transition-colors hover:bg-[var(--hover-background)] focus-ring"
                     >
                       <span
                         className="relative z-10 flex h-8 w-8 flex-none items-center justify-center rounded-full"
@@ -116,7 +116,7 @@ export default function AnalyticsPage() {
               })}
             </ol>
 
-            <div className="mt-4 border-t border-white/8 pt-4">
+            <div className="mt-4 border-t border-[var(--border-subtle)] pt-4">
               <p className="mb-2 text-xs font-medium text-[var(--rf-text-muted)]">
                 סטטוסים נוספים
               </p>
@@ -127,7 +127,7 @@ export default function AnalyticsPage() {
                     <Link
                       key={s}
                       href={`/admin/candidates?status=${s}`}
-                      className="flex items-center gap-2 rounded-xl border border-white/8 bg-white/[0.02] px-3 py-2 transition-colors hover:bg-white/[0.05] focus-ring"
+                      className="flex items-center gap-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-muted)] px-3 py-2 transition-colors hover:bg-[var(--hover-background)] focus-ring"
                     >
                       <Icon
                         name={meta.icon}
@@ -241,7 +241,7 @@ export default function AnalyticsPage() {
 /** Placeholder shown in a chart card while there is nothing to plot. */
 function ChartEmpty({ text }: { text: string }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-white/10 px-4 py-10 text-center">
+    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[var(--border)] px-4 py-10 text-center">
       <Icon name="BarChart3" size={22} className="mb-3 text-[var(--rf-text-muted)]" />
       <p className="max-w-xs text-sm text-[var(--rf-text-muted)]">{text}</p>
     </div>
@@ -266,7 +266,7 @@ function BonusStat({
   return (
     <Link
       href={href}
-      className="glass flex flex-col gap-2 rounded-2xl p-4 transition-colors hover:bg-white/[0.05] focus-ring"
+      className="glass flex flex-col gap-2 rounded-2xl p-4 transition-colors hover:bg-[var(--hover-background)] focus-ring"
     >
       <span
         className="flex h-8 w-8 items-center justify-center rounded-lg"

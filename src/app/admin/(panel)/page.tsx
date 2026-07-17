@@ -56,9 +56,9 @@ export default function DashboardPage() {
         </Link>
         <div className="mt-3 flex items-center justify-center gap-2 text-sm">
           <QuickLink href="/admin/candidates" icon={Users} label="כל המועמדים" />
-          <span className="text-white/10">·</span>
+          <span className="text-[var(--border-strong)]">·</span>
           <QuickLink href="/admin/jobs" icon={Briefcase} label="משרה חדשה" />
-          <span className="text-white/10">·</span>
+          <span className="text-[var(--border-strong)]">·</span>
           <QuickLink href="/admin/messages" icon={MessageSquare} label="הודעות מוכנות" />
         </div>
       </section>
@@ -178,7 +178,7 @@ export default function DashboardPage() {
               <li key={c.id}>
                 <Link
                   href={`/admin/candidates/${c.id}`}
-                  className="glass flex items-center gap-3 rounded-2xl p-3 transition-colors hover:bg-white/[0.05] focus-ring"
+                  className="glass flex items-center gap-3 rounded-2xl p-3 transition-colors hover:bg-[var(--hover-background)] focus-ring"
                 >
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-[var(--rf-text)]">
@@ -200,7 +200,7 @@ export default function DashboardPage() {
       {/* 7 · Analytics link */}
       <Link
         href="/admin/analytics"
-        className="glass flex items-center justify-between rounded-2xl px-4 py-3.5 transition-colors hover:bg-white/[0.05] focus-ring"
+        className="glass flex items-center justify-between rounded-2xl px-4 py-3.5 transition-colors hover:bg-[var(--hover-background)] focus-ring"
       >
         <span className="flex items-center gap-2.5 text-sm font-medium text-[var(--rf-text)]">
           <BarChart3 size={18} className="text-[var(--rf-purple)]" />
@@ -307,7 +307,7 @@ function AttentionGrid({ stats }: { stats: DashboardStats }) {
         <Link
           key={item.label}
           href={item.href}
-          className="glass flex items-center gap-3 rounded-2xl p-3 transition-colors hover:bg-white/[0.05] focus-ring"
+          className="glass flex items-center gap-3 rounded-2xl p-3 transition-colors hover:bg-[var(--hover-background)] focus-ring"
         >
           <span
             className="flex h-9 w-9 flex-none items-center justify-center rounded-xl"
@@ -347,7 +347,7 @@ function MetricCard({
   return (
     <Link
       href={href}
-      className="glass flex flex-col gap-2 rounded-2xl p-4 transition-colors hover:bg-white/[0.05] focus-ring"
+      className="glass flex flex-col gap-2 rounded-2xl p-4 transition-colors hover:bg-[var(--hover-background)] focus-ring"
     >
       <span
         className="flex h-8 w-8 items-center justify-center rounded-lg"

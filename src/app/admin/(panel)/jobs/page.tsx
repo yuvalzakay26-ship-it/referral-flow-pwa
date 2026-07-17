@@ -63,26 +63,26 @@ const PRIORITY_META: Record<JobPriority, { label: string; badgeClass: string }> 
   {
     low: {
       label: "עדיפות נמוכה",
-      badgeClass: "bg-slate-500/15 text-slate-300 border-slate-400/30",
+      badgeClass: "rf-badge badge-slate",
     },
     medium: {
       label: "עדיפות בינונית",
-      badgeClass: "bg-amber-500/15 text-amber-300 border-amber-400/30",
+      badgeClass: "rf-badge badge-amber",
     },
     high: {
       label: "עדיפות גבוהה",
-      badgeClass: "bg-[var(--rf-magenta)]/15 text-red-300 border-red-400/30",
+      badgeClass: "rf-badge badge-red",
     },
   };
 
 const STATUS_META: Record<JobStatus, { label: string; badgeClass: string }> = {
   published: {
     label: "מפורסם",
-    badgeClass: "bg-emerald-500/15 text-emerald-300 border-emerald-400/30",
+    badgeClass: "rf-badge badge-emerald",
   },
   draft: {
     label: "טיוטה",
-    badgeClass: "bg-slate-500/15 text-slate-300 border-slate-400/30",
+    badgeClass: "rf-badge badge-slate",
   },
 };
 
@@ -308,7 +308,7 @@ export default function JobsPage() {
           {Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
-              className="h-56 animate-pulse rounded-[var(--rf-radius)] bg-white/[0.03]"
+              className="h-56 animate-pulse rounded-[var(--rf-radius)] bg-[var(--surface-muted)]"
             />
           ))}
         </div>
@@ -341,7 +341,7 @@ export default function JobsPage() {
                   {!job.is_active && (
                     <Badge
                       label="בארכיון"
-                      className="bg-zinc-500/15 text-zinc-400 border-zinc-400/30"
+                      className="rf-badge badge-zinc"
                     />
                   )}
                 </div>
@@ -387,13 +387,13 @@ export default function JobsPage() {
                 )}
 
                 {job.internal_notes && (
-                  <p className="rounded-lg border border-amber-400/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-200/80">
+                  <p className="rf-badge badge-amber rounded-lg border px-3 py-2 text-xs">
                     הערה פנימית: {job.internal_notes}
                   </p>
                 )}
               </div>
 
-              <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-white/8 pt-4">
+              <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-[var(--border-subtle)] pt-4">
                 {settings && (
                   <>
                     <CopyButton
@@ -450,7 +450,7 @@ export default function JobsPage() {
       {formOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-[var(--overlay)] backdrop-blur-sm"
             onClick={closeForm}
             aria-hidden="true"
           />
@@ -466,7 +466,7 @@ export default function JobsPage() {
                 type="button"
                 onClick={closeForm}
                 aria-label="סגירה"
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--rf-text-muted)] transition-colors hover:bg-white/5 hover:text-[var(--rf-text)] focus-ring"
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--rf-text-muted)] transition-colors hover:bg-[var(--hover-background)] hover:text-[var(--rf-text)] focus-ring"
               >
                 <X size={18} />
               </button>
@@ -605,7 +605,7 @@ export default function JobsPage() {
               </Field>
 
               {error && (
-                <p className="text-sm font-medium text-red-400" role="alert">
+                <p className="text-sm font-medium text-[var(--rf-danger)]" role="alert">
                   {error}
                 </p>
               )}

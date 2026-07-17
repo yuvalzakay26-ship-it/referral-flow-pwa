@@ -17,7 +17,7 @@ export function StatusTimeline({
 
   return (
     <ol className="relative flex flex-col gap-5 pr-4">
-      <span className="absolute bottom-2 right-[5px] top-2 w-px bg-white/10" />
+      <span className="absolute bottom-2 right-[5px] top-2 w-px bg-[var(--border-strong)]" />
       {history.map((h) => {
         const meta = getStatusMeta(h.to_status);
         return (

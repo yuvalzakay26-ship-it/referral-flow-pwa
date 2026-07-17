@@ -29,14 +29,14 @@ export function CopyButton({ value, label, className, size = "sm" }: CopyButtonP
       type="button"
       onClick={handleCopy}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 font-medium text-[var(--rf-text)] transition-all hover:bg-white/10 focus-ring",
+        "inline-flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface-muted)] font-medium text-[var(--rf-text)] transition-all hover:bg-[var(--hover-background-strong)] focus-ring",
         size === "sm" ? "h-9 px-3 text-sm" : "h-11 px-4 text-sm",
         className,
       )}
       aria-live="polite"
     >
       {copied ? (
-        <Check size={15} className="text-emerald-400" />
+        <Check size={15} className="text-[var(--rf-success)]" />
       ) : (
         <Copy size={15} />
       )}

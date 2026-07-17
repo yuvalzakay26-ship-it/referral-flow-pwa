@@ -34,8 +34,8 @@ export function RadioPills<T extends string>({
             className={cn(
               "min-w-20 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all focus-ring",
               active
-                ? "border-transparent bg-[var(--rf-purple)]/25 text-white shadow-[0_0_0_1px_var(--rf-purple)]"
-                : "border-white/10 bg-white/5 text-[var(--rf-text-muted)] hover:bg-white/10 hover:text-[var(--rf-text)]",
+                ? "border-transparent bg-[color-mix(in_srgb,var(--rf-purple)_18%,transparent)] text-[var(--rf-purple)] shadow-[0_0_0_1px_var(--rf-purple)]"
+                : "border-[var(--border)] bg-[var(--surface-muted)] text-[var(--rf-text-muted)] hover:bg-[var(--hover-background-strong)] hover:text-[var(--rf-text)]",
             )}
           >
             {opt.label}
@@ -72,8 +72,8 @@ export function ChipMultiSelect<T extends string>({
             className={cn(
               "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-medium transition-all focus-ring",
               active
-                ? "border-transparent bg-[var(--rf-magenta)]/20 text-white shadow-[0_0_0_1px_color-mix(in_srgb,var(--rf-magenta)_60%,transparent)]"
-                : "border-white/10 bg-white/5 text-[var(--rf-text-muted)] hover:bg-white/10 hover:text-[var(--rf-text)]",
+                ? "border-transparent bg-[color-mix(in_srgb,var(--rf-magenta)_15%,transparent)] text-[var(--rf-magenta)] shadow-[0_0_0_1px_color-mix(in_srgb,var(--rf-magenta)_60%,transparent)]"
+                : "border-[var(--border)] bg-[var(--surface-muted)] text-[var(--rf-text-muted)] hover:bg-[var(--hover-background-strong)] hover:text-[var(--rf-text)]",
             )}
           >
             {active && <Check size={13} />}
@@ -107,7 +107,7 @@ export function Checkbox({
           "mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-md border transition-all",
           checked
             ? "border-transparent bg-[var(--rf-magenta)]"
-            : "border-white/20 bg-white/5",
+            : "border-[var(--border-strong)] bg-[var(--input-background)]",
         )}
       >
         {checked && <Check size={13} className="text-white" />}

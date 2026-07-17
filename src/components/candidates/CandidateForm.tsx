@@ -402,15 +402,12 @@ export function CandidateForm({
     >
       {/* Duplicate warning */}
       {duplicates.length > 0 && (
-        <div className="mb-4 rounded-2xl border border-amber-400/30 bg-amber-500/10 p-4">
+        <div className="rf-badge badge-amber mb-4 rounded-2xl border p-4">
           <div className="flex items-start gap-2">
-            <AlertTriangle
-              size={18}
-              className="mt-0.5 flex-none text-amber-300"
-            />
-            <div className="text-sm text-amber-100">
+            <AlertTriangle size={18} className="mt-0.5 flex-none" />
+            <div className="text-sm">
               <p className="font-semibold">אזהרת כפילות פנימית בלבד</p>
-              <p className="mt-0.5 leading-relaxed text-amber-100/90">
+              <p className="mt-0.5 leading-relaxed">
                 נמצאו רשומות עם טלפון או אימייל זהים. זו בדיקה פנימית של רשומות
                 המערכת שלך בלבד — ואינה אישור שהמועמד/ת קיים/ת במערכות הגיוס של
                 NESS.
@@ -424,7 +421,7 @@ export function CandidateForm({
                     >
                       {d.candidate.full_name}
                     </a>{" "}
-                    <span className="text-amber-100/70">
+                    <span className="opacity-80">
                       ({d.reason === "phone" ? "טלפון זהה" : "אימייל זהה"})
                     </span>
                   </li>
@@ -728,8 +725,8 @@ export function CandidateForm({
               />
             </Field>
 
-            <div className="rounded-xl border border-amber-400/15 bg-amber-500/[0.04] p-3">
-              <p className="mb-3 text-xs leading-relaxed text-amber-200/80">
+            <div className="rf-badge badge-amber rounded-xl border p-3">
+              <p className="mb-3 text-xs leading-relaxed">
                 שאלות זכאות — מועמד/ת שכבר קיים/ת במערכת עשוי/ה שלא להיות זכאי/ת
                 כהפניה חדשה.
               </p>
@@ -809,7 +806,7 @@ export function CandidateForm({
               <FileText size={18} className="text-[var(--rf-text-muted)]" />
             </CardHeader>
             {existingCv && !cvFile ? (
-              <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[var(--rf-surface-2)]/60 p-4">
+              <div className="flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--rf-surface-2)]/60 p-4">
                 <FileText
                   size={20}
                   className="flex-none text-[var(--rf-magenta)]"
@@ -821,7 +818,7 @@ export function CandidateForm({
                   type="button"
                   onClick={() => setExistingCv(null)}
                   aria-label="הסרת הקובץ"
-                  className="rounded-lg p-1.5 text-[var(--rf-text-muted)] hover:bg-white/5 hover:text-red-400 focus-ring"
+                  className="rounded-lg p-1.5 text-[var(--rf-text-muted)] hover:bg-[var(--hover-background)] hover:text-[var(--rf-danger)] focus-ring"
                 >
                   <X size={16} />
                 </button>
@@ -830,7 +827,7 @@ export function CandidateForm({
               <CvUpload file={cvFile} onChange={setCvFile} />
             )}
             {USE_MOCK_DATA && (
-              <p className="mt-3 flex items-start gap-2 rounded-xl border border-amber-400/20 bg-amber-500/5 px-3 py-2 text-xs leading-relaxed text-amber-200/80">
+              <p className="rf-badge badge-amber mt-3 flex items-start gap-2 rounded-xl border px-3 py-2 text-xs leading-relaxed">
                 <FileWarning size={14} className="mt-0.5 flex-none" />
                 מצב הדגמה: הקובץ אינו נשמר בפועל ואין להעלות קורות חיים אמיתיים.
                 בסביבת אמת הקובץ נשמר ב-Supabase Storage פרטי בלבד.
@@ -912,7 +909,7 @@ export function CandidateForm({
 
       {serverError && (
         <p
-          className="mt-4 rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-300"
+          className="rf-badge badge-red mt-4 rounded-lg border px-3 py-2 text-sm"
           role="alert"
         >
           {serverError}
@@ -948,7 +945,7 @@ export function CandidateForm({
       </div>
 
       {/* Sticky mobile action bar */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/8 glass-elevated p-3 lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--border-subtle)] glass-elevated p-3 lg:hidden">
         <div className="flex items-center gap-2">
           <Button
             type="button"
