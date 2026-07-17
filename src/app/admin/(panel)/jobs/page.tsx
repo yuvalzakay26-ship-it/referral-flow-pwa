@@ -321,7 +321,12 @@ export default function JobsPage() {
         />
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
-          {visibleJobs.map((job) => (
+          {visibleJobs.map((job) => {
+            // Build the WhatsApp post once per job instead of twice (copy value
+            // + wa.me href), which previously ran the string assembly on every
+            // render for every visible job.
+            const post = settings ? buildWhatsappPost(job, settings) : "";
+            return (
             <Card
               key={job.id}
               className={`flex flex-col gap-4 ${
@@ -396,13 +401,10 @@ export default function JobsPage() {
               <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-[var(--border-subtle)] pt-4">
                 {settings && (
                   <>
-                    <CopyButton
-                      value={buildWhatsappPost(job, settings)}
-                      label="העתקת פוסט"
-                    />
+                    <CopyButton value={post} label="העתקת פוסט" />
                     <Button variant="outline" size="sm" asChild>
                       <a
-                        href={shareWhatsappLink(buildWhatsappPost(job, settings))}
+                        href={shareWhatsappLink(post)}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -443,7 +445,8 @@ export default function JobsPage() {
                 </Button>
               </div>
             </Card>
-          ))}
+            );
+          })}
         </div>
       )}
 

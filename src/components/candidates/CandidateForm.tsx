@@ -2,49 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  User,
-  Briefcase,
-  Radio,
-  FileText,
-  Target,
-  Loader2,
-  Save,
-  ExternalLink,
-  MessageCircle,
-  Wand2,
-  X,
-  AlertTriangle,
-  FileWarning,
-} from "lucide-react";
+import { Loader2, Save, ExternalLink, AlertTriangle } from "lucide-react";
 
-import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Field, TextInput, SelectInput, TextArea } from "@/components/ui/Field";
-import { RadioPills, ChipMultiSelect } from "@/components/ui/Choice";
-import { CopyButton } from "@/components/ui/CopyButton";
-import { CvUpload } from "./CvUpload";
 
-import { candidateInputSchema, deriveEligibility } from "@/lib/validation";
-import {
-  PROFESSIONAL_FIELDS,
-  WORK_AREAS,
-  EDUCATION_LEVELS,
-  STUDY_YEARS,
-  JOB_TYPE_LIST,
-} from "@/config/jobTypes";
-import { SOURCE_LIST } from "@/config/sources";
-import { STATUS_LIST } from "@/config/statuses";
-import { ELIGIBILITY, getEligibilityMeta } from "@/config/eligibility";
-import {
-  ELIGIBILITY_QUESTIONS,
-  YES_NO_UNSURE_LABELS,
-} from "@/config/eligibility";
-import { BONUS_STATUS_LIST } from "@/config/bonus";
+import { candidateInputSchema } from "@/lib/validation";
+import { deriveEligibility } from "@/lib/eligibility";
 import { DEFAULT_SETTINGS } from "@/config/settings";
-import { USE_MOCK_DATA } from "@/config/app";
 import {
   createCandidate,
   updateCandidate,
@@ -52,55 +18,20 @@ import {
   findDuplicates,
   type DuplicateMatch,
 } from "@/services/candidateService";
-import {
-  sanitizeFileName,
-  formatIsraeliPhone,
-  whatsappLink,
-} from "@/lib/utils";
-import type { Candidate, YesNoUnsure } from "@/types";
+import { sanitizeFileName, formatIsraeliPhone } from "@/lib/utils";
+import type { Candidate } from "@/types";
+
+import type { Values } from "./form/types";
+import { PersonalDetailsSection } from "./form/PersonalDetailsSection";
+import { ProfessionalDetailsSection } from "./form/ProfessionalDetailsSection";
+import { ReferralDetailsSection } from "./form/ReferralDetailsSection";
+import { CvSection } from "./form/CvSection";
+import { TrackingSection } from "./form/TrackingSection";
 
 const DRAFT_KEY = "rf_new_candidate_draft";
 
-type Values = {
-  full_name: string;
-  phone: string;
-  email: string;
-  city: string;
-  linkedin_url: string;
-  whatsapp_number: string;
-  professional_field: string;
-  current_role: string;
-  years_of_experience: number;
-  education: string;
-  study_year: string;
-  preferred_job_types: string[];
-  preferred_locations: string[];
-  preferred_job_categories: string[];
-  technical_skills: string[];
-  professional_summary: string;
-  applied_last_12_months: YesNoUnsure;
-  referred_by_another_employee: YesNoUnsure;
-  contacted_recruiter_before: YesNoUnsure;
-  source: string;
-  source_details: string;
-  date_received: string;
-  referred_position: string;
-  general_category: string;
-  internal_notes: string;
-  status: string;
-  eligibility_status: string;
-  referral_date: string;
-  follow_up_date: string;
-  bonus_status: string;
-  bonus_amount: number | null;
-  closure_reason: string;
-};
-
-const yesNoOptions: { value: YesNoUnsure; label: string }[] = [
-  { value: "yes", label: YES_NO_UNSURE_LABELS.yes },
-  { value: "no", label: YES_NO_UNSURE_LABELS.no },
-  { value: "unsure", label: YES_NO_UNSURE_LABELS.unsure },
-];
+/** Debounce window for persisting the create-mode draft to localStorage. */
+const DRAFT_SAVE_MS = 500;
 
 function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
@@ -222,9 +153,11 @@ export function CandidateForm({
   });
 
   const education = watch("education");
-  const isStudent = education?.includes("סטודנט");
+  const isStudent = Boolean(education?.includes("סטודנט"));
   const status = watch("status");
   const bonusStatus = watch("bonus_status");
+  const phoneVal = watch("phone");
+  const emailVal = watch("email");
 
   // --- Local draft autosave (create mode only, non-file data) ---------------
   const hydrated = useRef(false);
@@ -242,16 +175,35 @@ export function CandidateForm({
     }
   }, [mode, reset]);
 
+  // Persist the draft on a trailing debounce instead of on every keystroke.
+  // The watch subscription only (cheaply) reschedules a timer; the serialize +
+  // localStorage write happens at most once per DRAFT_SAVE_MS. A pending write
+  // is flushed on unmount / navigation so nothing typed just before leaving is
+  // lost. Only serializable form values are stored — the CV File object is held
+  // in separate React state and never serialized.
   useEffect(() => {
     if (mode !== "create") return;
-    const sub = watch((values) => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let pending: Values | undefined;
+    const flush = () => {
+      if (!pending) return;
       try {
-        window.localStorage.setItem(DRAFT_KEY, JSON.stringify(values));
+        window.localStorage.setItem(DRAFT_KEY, JSON.stringify(pending));
       } catch {
         /* storage may be unavailable */
       }
+      pending = undefined;
+    };
+    const sub = watch((values) => {
+      pending = values as Values;
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(flush, DRAFT_SAVE_MS);
     });
-    return () => sub.unsubscribe();
+    return () => {
+      sub.unsubscribe();
+      if (timer) clearTimeout(timer);
+      flush();
+    };
   }, [mode, watch]);
 
   // --- Confirm before discarding unsaved changes ----------------------------
@@ -390,8 +342,6 @@ export function CandidateForm({
     }
   }
 
-  const phoneVal = watch("phone");
-  const emailVal = watch("email");
   const busy = saving !== null;
 
   return (
@@ -433,477 +383,43 @@ export function CandidateForm({
       )}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        {/* Personal details */}
-        <Card>
-          <CardHeader>
-            <CardTitle>פרטים אישיים</CardTitle>
-            <User size={18} className="text-[var(--rf-text-muted)]" />
-          </CardHeader>
-          <div className="flex flex-col gap-4">
-            <Field
-              label="שם מלא"
-              htmlFor="full_name"
-              required
-              error={errors.full_name?.message}
-            >
-              <TextInput
-                id="full_name"
-                autoComplete="off"
-                placeholder="ישראל ישראלי"
-                {...register("full_name")}
-              />
-            </Field>
-            <Field
-              label="טלפון"
-              htmlFor="phone"
-              required
-              error={errors.phone?.message}
-            >
-              <TextInput
-                id="phone"
-                inputMode="tel"
-                dir="ltr"
-                placeholder="050-0000000"
-                {...register("phone", { onBlur: checkDuplicates })}
-              />
-              <div className="mt-2 flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={normalizePhoneField}
-                >
-                  <Wand2 size={14} />
-                  נורמליזציה
-                </Button>
-                <CopyButton value={phoneVal} label="העתקת טלפון" />
-                <Button type="button" variant="ghost" size="sm" asChild>
-                  <a
-                    href={whatsappLink(phoneVal)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <MessageCircle size={14} />
-                    וואטסאפ
-                  </a>
-                </Button>
-              </div>
-            </Field>
-            <Field
-              label="אימייל"
-              htmlFor="email"
-              required
-              error={errors.email?.message}
-            >
-              <TextInput
-                id="email"
-                inputMode="email"
-                dir="ltr"
-                placeholder="name@example.com"
-                {...register("email", { onBlur: checkDuplicates })}
-              />
-              <div className="mt-2">
-                <CopyButton value={emailVal} label="העתקת אימייל" />
-              </div>
-            </Field>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field
-                label="עיר / אזור"
-                htmlFor="city"
-                required
-                error={errors.city?.message}
-              >
-                <TextInput id="city" placeholder="תל אביב" {...register("city")} />
-              </Field>
-              <Field label="וואטסאפ (רשות)" htmlFor="whatsapp_number">
-                <TextInput
-                  id="whatsapp_number"
-                  dir="ltr"
-                  placeholder="ברירת מחדל: הטלפון"
-                  {...register("whatsapp_number")}
-                />
-              </Field>
-            </div>
-            <Field
-              label="קישור LinkedIn (רשות)"
-              htmlFor="linkedin_url"
-              error={errors.linkedin_url?.message}
-            >
-              <TextInput
-                id="linkedin_url"
-                dir="ltr"
-                placeholder="https://linkedin.com/in/..."
-                {...register("linkedin_url")}
-              />
-            </Field>
-          </div>
-        </Card>
+        <PersonalDetailsSection
+          register={register}
+          errors={errors}
+          phoneVal={phoneVal}
+          emailVal={emailVal}
+          onCheckDuplicates={checkDuplicates}
+          onNormalizePhone={normalizePhoneField}
+        />
 
-        {/* Professional details */}
-        <Card>
-          <CardHeader>
-            <CardTitle>פרטים מקצועיים</CardTitle>
-            <Briefcase size={18} className="text-[var(--rf-text-muted)]" />
-          </CardHeader>
-          <div className="flex flex-col gap-4">
-            <Field
-              label="תחום מקצועי"
-              htmlFor="professional_field"
-              required
-              error={errors.professional_field?.message}
-            >
-              <SelectInput
-                id="professional_field"
-                {...register("professional_field")}
-              >
-                <option value="">בחרו תחום…</option>
-                {PROFESSIONAL_FIELDS.map((f) => (
-                  <option key={f} value={f}>
-                    {f}
-                  </option>
-                ))}
-              </SelectInput>
-            </Field>
-            <Field label="תפקיד נוכחי" htmlFor="current_role">
-              <TextInput
-                id="current_role"
-                placeholder="לדוגמה: מפתח/ת Frontend"
-                {...register("current_role")}
-              />
-            </Field>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field
-                label="שנות ניסיון"
-                htmlFor="years_of_experience"
-                error={errors.years_of_experience?.message}
-              >
-                <TextInput
-                  id="years_of_experience"
-                  type="number"
-                  min={0}
-                  max={60}
-                  dir="ltr"
-                  inputMode="numeric"
-                  {...register("years_of_experience", { valueAsNumber: true })}
-                />
-              </Field>
-              <Field label="השכלה" htmlFor="education">
-                <SelectInput id="education" {...register("education")}>
-                  <option value="">בחרו…</option>
-                  {EDUCATION_LEVELS.map((e) => (
-                    <option key={e} value={e}>
-                      {e}
-                    </option>
-                  ))}
-                </SelectInput>
-              </Field>
-            </div>
-            {isStudent && (
-              <Field label="שנת לימודים" htmlFor="study_year">
-                <SelectInput id="study_year" {...register("study_year")}>
-                  <option value="">בחרו שנה…</option>
-                  {STUDY_YEARS.map((y) => (
-                    <option key={y} value={y}>
-                      {y}
-                    </option>
-                  ))}
-                </SelectInput>
-              </Field>
-            )}
-            <Field label="קטגוריות משרה מועדפות">
-              <Controller
-                control={control}
-                name="preferred_job_categories"
-                render={({ field }) => (
-                  <ChipMultiSelect
-                    options={PROFESSIONAL_FIELDS.map((f) => ({
-                      value: f,
-                      label: f,
-                    }))}
-                    value={field.value ?? []}
-                    onChange={field.onChange}
-                  />
-                )}
-              />
-            </Field>
-            <Field label="סוגי העסקה מועדפים">
-              <Controller
-                control={control}
-                name="preferred_job_types"
-                render={({ field }) => (
-                  <ChipMultiSelect
-                    options={JOB_TYPE_LIST.map((j) => ({
-                      value: j.value,
-                      label: j.label,
-                    }))}
-                    value={field.value ?? []}
-                    onChange={field.onChange}
-                  />
-                )}
-              />
-            </Field>
-            <Field label="אזורי עבודה מועדפים">
-              <Controller
-                control={control}
-                name="preferred_locations"
-                render={({ field }) => (
-                  <ChipMultiSelect
-                    options={WORK_AREAS.map((w) => ({ value: w, label: w }))}
-                    value={field.value ?? []}
-                    onChange={field.onChange}
-                  />
-                )}
-              />
-            </Field>
-            <Field
-              label="כישורים / מילות מפתח"
-              htmlFor="technical_skills"
-              hint="הפרידו בפסיקים (למשל: React, TypeScript, AWS)"
-            >
-              <Controller
-                control={control}
-                name="technical_skills"
-                render={({ field }) => (
-                  <TextInput
-                    id="technical_skills"
-                    value={(field.value ?? []).join(", ")}
-                    onChange={(e) =>
-                      field.onChange(
-                        e.target.value
-                          .split(",")
-                          .map((s) => s.trim())
-                          .filter(Boolean),
-                      )
-                    }
-                    placeholder="React, TypeScript, Node.js"
-                  />
-                )}
-              />
-            </Field>
-            <Field label="תקציר מקצועי" htmlFor="professional_summary">
-              <TextArea
-                id="professional_summary"
-                rows={3}
-                placeholder="כמה מילים על הניסיון והשאיפות…"
-                {...register("professional_summary")}
-              />
-            </Field>
-          </div>
-        </Card>
+        <ProfessionalDetailsSection
+          register={register}
+          control={control}
+          errors={errors}
+          isStudent={isStudent}
+        />
 
-        {/* Referral details */}
-        <Card>
-          <CardHeader>
-            <CardTitle>פרטי הפניה</CardTitle>
-            <Radio size={18} className="text-[var(--rf-text-muted)]" />
-          </CardHeader>
-          <div className="flex flex-col gap-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="מקור" htmlFor="source">
-                <SelectInput id="source" {...register("source")}>
-                  {SOURCE_LIST.map((s) => (
-                    <option key={s.key} value={s.key}>
-                      {s.label}
-                    </option>
-                  ))}
-                </SelectInput>
-              </Field>
-              <Field label="פרטי מקור / שם קבוצה" htmlFor="source_details">
-                <TextInput
-                  id="source_details"
-                  placeholder="לדוגמה: קבוצת הייטק דרום"
-                  {...register("source_details")}
-                />
-              </Field>
-            </div>
-            <Field label="תאריך קבלה" htmlFor="date_received">
-              <TextInput
-                id="date_received"
-                type="date"
-                dir="ltr"
-                {...register("date_received")}
-              />
-            </Field>
-
-            <div className="rf-badge badge-amber rounded-xl border p-3">
-              <p className="mb-3 text-xs leading-relaxed">
-                שאלות זכאות — מועמד/ת שכבר קיים/ת במערכת עשוי/ה שלא להיות זכאי/ת
-                כהפניה חדשה.
-              </p>
-              <div className="flex flex-col gap-3">
-                {ELIGIBILITY_QUESTIONS.map((q) => (
-                  <Field key={q.key} label={q.question}>
-                    <Controller
-                      control={control}
-                      name={q.key}
-                      render={({ field }) => (
-                        <RadioPills
-                          options={yesNoOptions}
-                          value={field.value}
-                          onChange={field.onChange}
-                          name={q.key}
-                        />
-                      )}
-                    />
-                  </Field>
-                ))}
-              </div>
-            </div>
-
-            <Field label="סטטוס זכאות" htmlFor="eligibility_status">
-              <SelectInput
-                id="eligibility_status"
-                {...register("eligibility_status")}
-              >
-                {Object.values(ELIGIBILITY).map((e) => (
-                  <option key={e.value} value={e.value}>
-                    {e.label}
-                  </option>
-                ))}
-              </SelectInput>
-              <button
-                type="button"
-                onClick={applyDerivedEligibility}
-                className="mt-1.5 self-start text-xs font-medium text-[var(--rf-cyan)] hover:underline"
-              >
-                החלת המלצה אוטומטית (
-                {getEligibilityMeta(deriveEligibility(getValues())).label})
-              </button>
-            </Field>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="משרה רלוונטית" htmlFor="referred_position">
-                <TextInput
-                  id="referred_position"
-                  placeholder="שם המשרה"
-                  {...register("referred_position")}
-                />
-              </Field>
-              <Field label="קטגוריה מקצועית כללית" htmlFor="general_category">
-                <TextInput
-                  id="general_category"
-                  placeholder="כשאין משרה ספציפית"
-                  {...register("general_category")}
-                />
-              </Field>
-            </div>
-            <Field label="הערות פנימיות" htmlFor="internal_notes">
-              <TextArea
-                id="internal_notes"
-                rows={2}
-                placeholder="הערות לשימוש פנימי בלבד…"
-                {...register("internal_notes")}
-              />
-            </Field>
-          </div>
-        </Card>
+        <ReferralDetailsSection
+          register={register}
+          control={control}
+          errors={errors}
+          getValues={getValues}
+          onApplyDerivedEligibility={applyDerivedEligibility}
+        />
 
         {/* CV + tracking */}
         <div className="flex flex-col gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>קורות חיים</CardTitle>
-              <FileText size={18} className="text-[var(--rf-text-muted)]" />
-            </CardHeader>
-            {existingCv && !cvFile ? (
-              <div className="flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--rf-surface-2)]/60 p-4">
-                <FileText
-                  size={20}
-                  className="flex-none text-[var(--rf-magenta)]"
-                />
-                <span className="min-w-0 flex-1 truncate text-sm text-[var(--rf-text)]">
-                  {existingCv}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setExistingCv(null)}
-                  aria-label="הסרת הקובץ"
-                  className="rounded-lg p-1.5 text-[var(--rf-text-muted)] hover:bg-[var(--hover-background)] hover:text-[var(--rf-danger)] focus-ring"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            ) : (
-              <CvUpload file={cvFile} onChange={setCvFile} />
-            )}
-            {USE_MOCK_DATA && (
-              <p className="rf-badge badge-amber mt-3 flex items-start gap-2 rounded-xl border px-3 py-2 text-xs leading-relaxed">
-                <FileWarning size={14} className="mt-0.5 flex-none" />
-                מצב הדגמה: הקובץ אינו נשמר בפועל ואין להעלות קורות חיים אמיתיים.
-                בסביבת אמת הקובץ נשמר ב-Supabase Storage פרטי בלבד.
-              </p>
-            )}
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>מעקב וסטטוס</CardTitle>
-              <Target size={18} className="text-[var(--rf-text-muted)]" />
-            </CardHeader>
-            <div className="flex flex-col gap-4">
-              <Field label="סטטוס מועמד/ת" htmlFor="status">
-                <SelectInput id="status" {...register("status")}>
-                  {STATUS_LIST.map((s) => (
-                    <option key={s.value} value={s.value}>
-                      {s.label}
-                    </option>
-                  ))}
-                </SelectInput>
-              </Field>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="תאריך הפניה" htmlFor="referral_date">
-                  <TextInput
-                    id="referral_date"
-                    type="date"
-                    dir="ltr"
-                    {...register("referral_date")}
-                  />
-                </Field>
-                <Field label="תאריך מעקב" htmlFor="follow_up_date">
-                  <TextInput
-                    id="follow_up_date"
-                    type="date"
-                    dir="ltr"
-                    {...register("follow_up_date")}
-                  />
-                </Field>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="סטטוס בונוס" htmlFor="bonus_status">
-                  <SelectInput id="bonus_status" {...register("bonus_status")}>
-                    {BONUS_STATUS_LIST.map((b) => (
-                      <option key={b.value} value={b.value}>
-                        {b.label}
-                      </option>
-                    ))}
-                  </SelectInput>
-                </Field>
-                <Field label="סכום בונוס (₪)" htmlFor="bonus_amount">
-                  <TextInput
-                    id="bonus_amount"
-                    type="number"
-                    min={0}
-                    dir="ltr"
-                    {...register("bonus_amount", {
-                      setValueAs: (v) =>
-                        v === "" || v == null ? null : Number(v),
-                    })}
-                  />
-                </Field>
-              </div>
-              {(status === "closed" ||
-                status === "not_suitable" ||
-                bonusStatus === "not_eligible") && (
-                <Field label="סיבת סגירה / דחייה" htmlFor="closure_reason">
-                  <TextInput
-                    id="closure_reason"
-                    placeholder="לדוגמה: מצא/ה עבודה אחרת"
-                    {...register("closure_reason")}
-                  />
-                </Field>
-              )}
-            </div>
-          </Card>
+          <CvSection
+            existingCv={existingCv}
+            cvFile={cvFile}
+            onChangeCvFile={setCvFile}
+            onRemoveExistingCv={() => setExistingCv(null)}
+          />
+          <TrackingSection
+            register={register}
+            status={status}
+            bonusStatus={bonusStatus}
+          />
         </div>
       </div>
 

@@ -11,7 +11,7 @@ import type {
   CandidateStatusHistory,
 } from "@/types";
 import { store, delay, nextId } from "./store";
-import { deriveEligibility } from "@/lib/validation";
+import { deriveEligibility } from "@/lib/eligibility";
 import {
   generateReferenceNumber,
   sanitizeFileName,

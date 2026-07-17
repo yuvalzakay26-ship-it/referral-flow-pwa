@@ -11,6 +11,7 @@ import { CandidateFilters } from "@/components/candidates/CandidateFilters";
 import { CandidateTable } from "@/components/candidates/CandidateTable";
 import { CandidateCard } from "@/components/candidates/CandidateCard";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { useMediaQuery } from "@/lib/useMediaQuery";
 import {
   listCandidates,
   type CandidateFilters as Filters,
@@ -91,6 +92,12 @@ function hasActiveFilters(f: Filters): boolean {
 
 function CandidatesView() {
   const searchParams = useSearchParams();
+  // Render only the layout that is actually visible instead of mounting both the
+  // desktop table and the mobile cards (which doubled the list DOM). The `lg`
+  // breakpoint matches the Tailwind `lg:` boundary the CSS previously used to
+  // show/hide each layout. The list renders only after the async fetch resolves
+  // (post-mount), so the media match is correct on first paint — no flash.
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
   // Initialize from URL once on mount; subsequent changes are user-driven.
   const [{ filters, sort }, setState] = useState(() =>
     readParams(new URLSearchParams(searchParams.toString())),
@@ -197,15 +204,14 @@ function CandidatesView() {
               }
             />
           )
+        ) : isDesktop ? (
+          <CandidateTable candidates={candidates} onSort={toggleSort} />
         ) : (
-          <>
-            <CandidateTable candidates={candidates} onSort={toggleSort} />
-            <div className="flex flex-col gap-3 lg:hidden">
-              {candidates.map((c) => (
-                <CandidateCard key={c.id} candidate={c} />
-              ))}
-            </div>
-          </>
+          <div className="flex flex-col gap-3">
+            {candidates.map((c) => (
+              <CandidateCard key={c.id} candidate={c} />
+            ))}
+          </div>
         )}
       </div>
     </div>

@@ -16,18 +16,22 @@ export function InstallCard() {
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    const handler = (e: Event) => {
+    const onBeforeInstall = (e: Event) => {
       e.preventDefault();
       setDeferred(e as BeforeInstallPromptEvent);
     };
-    window.addEventListener("beforeinstallprompt", handler);
-    window.addEventListener("appinstalled", () => setInstalled(true));
+    const onInstalled = () => setInstalled(true);
+    window.addEventListener("beforeinstallprompt", onBeforeInstall);
+    window.addEventListener("appinstalled", onInstalled);
     if (window.matchMedia("(display-mode: standalone)").matches) {
       // Detecting an already-installed PWA from the platform (external system).
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setInstalled(true);
     }
-    return () => window.removeEventListener("beforeinstallprompt", handler);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onBeforeInstall);
+      window.removeEventListener("appinstalled", onInstalled);
+    };
   }, []);
 
   async function handleInstall() {

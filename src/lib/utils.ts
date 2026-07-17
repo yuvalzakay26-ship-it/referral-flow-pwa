@@ -5,16 +5,40 @@ export function cn(...classes: ClassValue[]): string {
   return classes.filter(Boolean).join(" ");
 }
 
+/*
+ * Intl formatters are relatively expensive to construct, so they are created
+ * once at module scope and reused. These were previously instantiated on every
+ * call, which allocated a fresh formatter per row when used inside list `.map`s
+ * (timelines, notes, tables). The formatting output is unchanged.
+ */
+const DATE_FMT = new Intl.DateTimeFormat("he-IL", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
+
+const DATE_TIME_FMT = new Intl.DateTimeFormat("he-IL", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+const RELATIVE_FMT = new Intl.RelativeTimeFormat("he-IL", { numeric: "auto" });
+
+const CURRENCY_FMT = new Intl.NumberFormat("he-IL", {
+  style: "currency",
+  currency: "ILS",
+  maximumFractionDigits: 0,
+});
+
 /** Format an ISO date string to a Hebrew-readable date (dd/mm/yyyy). */
 export function formatDate(iso: string | null | undefined): string {
   if (!iso) return "—";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "—";
-  return new Intl.DateTimeFormat("he-IL", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(d);
+  return DATE_FMT.format(d);
 }
 
 /** Format an ISO date string to Hebrew date + time. */
@@ -22,13 +46,7 @@ export function formatDateTime(iso: string | null | undefined): string {
   if (!iso) return "—";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "—";
-  return new Intl.DateTimeFormat("he-IL", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(d);
+  return DATE_TIME_FMT.format(d);
 }
 
 /** Relative time in Hebrew (e.g. "לפני 3 ימים"). */
@@ -38,12 +56,11 @@ export function relativeTime(iso: string | null | undefined): string {
   if (Number.isNaN(d.getTime())) return "—";
   const diffMs = d.getTime() - Date.now();
   const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-  const rtf = new Intl.RelativeTimeFormat("he-IL", { numeric: "auto" });
-  if (Math.abs(diffDays) >= 1) return rtf.format(diffDays, "day");
+  if (Math.abs(diffDays) >= 1) return RELATIVE_FMT.format(diffDays, "day");
   const diffHours = Math.round(diffMs / (1000 * 60 * 60));
-  if (Math.abs(diffHours) >= 1) return rtf.format(diffHours, "hour");
+  if (Math.abs(diffHours) >= 1) return RELATIVE_FMT.format(diffHours, "hour");
   const diffMin = Math.round(diffMs / (1000 * 60));
-  return rtf.format(diffMin, "minute");
+  return RELATIVE_FMT.format(diffMin, "minute");
 }
 
 /** Generate a human-friendly reference number: RF-YYYYMMDD-XXXX. */
@@ -115,9 +132,5 @@ export function whatsappLink(phone: string, message?: string): string {
 /** Currency formatting for bonus amounts (ILS). */
 export function formatCurrency(amount: number | null | undefined): string {
   if (amount == null) return "—";
-  return new Intl.NumberFormat("he-IL", {
-    style: "currency",
-    currency: "ILS",
-    maximumFractionDigits: 0,
-  }).format(amount);
+  return CURRENCY_FMT.format(amount);
 }

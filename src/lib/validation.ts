@@ -1,10 +1,9 @@
 import { z } from "zod";
-import {
-  CV_ACCEPTED_EXTENSIONS,
-  CV_MAX_SIZE_BYTES,
-  CV_MAX_SIZE_MB,
-} from "@/config/app";
-import type { EligibilityStatus, YesNoUnsure } from "@/types";
+
+// Note: Zod-free business rules (deriveEligibility, validateCvFile) live in
+// `@/lib/eligibility` so that data-access and list/dashboard code can use them
+// without pulling Zod into routes that never validate a form. This module is
+// intentionally the only Zod entry point for candidate data.
 
 const jobTypeEnum = z.enum([
   "full_time",
@@ -94,46 +93,3 @@ export const candidateInputSchema = z.object({
 });
 
 export type CandidateFormValues = z.infer<typeof candidateInputSchema>;
-
-// --- CV file validation (safe, client + server) -----------------------------
-
-export function validateCvFile(file: File): string | null {
-  const ext = "." + (file.name.split(".").pop()?.toLowerCase() ?? "");
-  if (
-    !CV_ACCEPTED_EXTENSIONS.includes(
-      ext as (typeof CV_ACCEPTED_EXTENSIONS)[number],
-    )
-  ) {
-    return `יש להעלות קובץ מסוג PDF, DOC או DOCX`;
-  }
-  if (file.size > CV_MAX_SIZE_BYTES) {
-    return `הקובץ גדול מדי (עד ${CV_MAX_SIZE_MB}MB)`;
-  }
-  if (file.size === 0) {
-    return "הקובץ ריק";
-  }
-  return null;
-}
-
-// --- Eligibility derivation -------------------------------------------------
-
-/**
- * Derive eligibility standing from the three referral questions.
- * If the candidate already applied or was already referred / contacted a
- * recruiter, they are likely already in the system and may not qualify as a
- * new referral.
- */
-export function deriveEligibility(answers: {
-  applied_last_12_months: YesNoUnsure;
-  referred_by_another_employee: YesNoUnsure;
-  contacted_recruiter_before: YesNoUnsure;
-}): EligibilityStatus {
-  const values = [
-    answers.applied_last_12_months,
-    answers.referred_by_another_employee,
-    answers.contacted_recruiter_before,
-  ];
-  if (values.includes("yes")) return "likely_existing";
-  if (values.includes("unsure")) return "review";
-  return "eligible";
-}

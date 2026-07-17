@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Save,
   RotateCcw,
@@ -33,9 +33,17 @@ export default function SettingsPage() {
   const [form, setForm] = useState<AppSettings | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     getSettings().then(setForm);
+  }, []);
+
+  // Clear a pending "saved" reset if the page unmounts.
+  useEffect(() => {
+    return () => {
+      if (savedTimer.current) clearTimeout(savedTimer.current);
+    };
   }, []);
 
   function update<K extends keyof AppSettings>(key: K, value: AppSettings[K]) {
@@ -49,7 +57,8 @@ export default function SettingsPage() {
     setForm(next);
     setSaving(false);
     setSaved(true);
-    window.setTimeout(() => setSaved(false), 2000);
+    if (savedTimer.current) clearTimeout(savedTimer.current);
+    savedTimer.current = setTimeout(() => setSaved(false), 2000);
   }
 
   function handleReset() {

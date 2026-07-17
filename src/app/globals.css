@@ -262,11 +262,49 @@ body {
    Only theme-driven paint properties are animated — never layout (width,
    height, padding, margin, position) or transform — so nothing shifts, jumps
    or reflows during the switch. `transition: all` is intentionally avoided.
+
+   The transition is scoped to a curated list of shared surfaces, form controls
+   and text/icon elements rather than the universal `*` / `*::before` / `*::after`
+   selector it replaced. The old rule scheduled a transition on every node AND
+   both pseudo-elements of every node — on a large candidate table or detail
+   page that is thousands of scheduled transitions per toggle. This list targets
+   only elements that actually carry a themed paint property, which removes the
+   per-node pseudo-element doubling and the match against non-visual wrappers,
+   while keeping the cross-fade visually identical on the surfaces that matter.
    ========================================================================== */
-:root.theme-transitioning,
-:root.theme-transitioning *,
-:root.theme-transitioning *::before,
-:root.theme-transitioning *::after {
+:root.theme-transitioning body,
+:root.theme-transitioning body::before,
+:root.theme-transitioning .glass,
+:root.theme-transitioning .glass-elevated,
+:root.theme-transitioning .gradient-border,
+:root.theme-transitioning .gradient-border::before,
+:root.theme-transitioning .admin-header,
+:root.theme-transitioning .mobile-nav,
+:root.theme-transitioning .drawer-panel,
+:root.theme-transitioning .rf-badge,
+:root.theme-transitioning .btn-gradient,
+:root.theme-transitioning a,
+:root.theme-transitioning button,
+:root.theme-transitioning input,
+:root.theme-transitioning select,
+:root.theme-transitioning textarea,
+:root.theme-transitioning label,
+:root.theme-transitioning h1,
+:root.theme-transitioning h2,
+:root.theme-transitioning h3,
+:root.theme-transitioning h4,
+:root.theme-transitioning h5,
+:root.theme-transitioning h6,
+:root.theme-transitioning p,
+:root.theme-transitioning span,
+:root.theme-transitioning li,
+:root.theme-transitioning th,
+:root.theme-transitioning td,
+:root.theme-transitioning strong,
+:root.theme-transitioning b,
+:root.theme-transitioning small,
+:root.theme-transitioning hr,
+:root.theme-transitioning svg {
   transition-property: background-color, border-color, color, fill, stroke,
     box-shadow, outline-color, text-decoration-color;
   transition-duration: 300ms;

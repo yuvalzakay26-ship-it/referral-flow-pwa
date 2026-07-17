@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { FileText, UploadCloud, X } from "lucide-react";
 import { cn, formatFileSize } from "@/lib/utils";
-import { validateCvFile } from "@/lib/validation";
+import { validateCvFile } from "@/lib/cvFile";
 import { CV_MAX_SIZE_MB } from "@/config/app";
 
 interface CvUploadProps {

@@ -52,9 +52,23 @@ export const store: Store =
     settings: clone(DEFAULT_SETTINGS),
   });
 
-/** Simulate a tiny latency so loading states are visible in dev. */
+/**
+ * Resolve a value through the async service API.
+ *
+ * By default there is NO artificial latency — production (and normal dev) return
+ * on a microtask, so navigation and data reads feel instant. An optional
+ * development latency simulator can be switched on to exercise loading states by
+ * setting `NEXT_PUBLIC_SIMULATE_LATENCY=true`; it is disabled by default and
+ * never adds waiting in production. The Promise-returning shape is preserved so
+ * a Supabase implementation can drop in later.
+ */
+const SIMULATE_LATENCY = process.env.NEXT_PUBLIC_SIMULATE_LATENCY === "true";
+
 export function delay<T>(value: T, ms = 120): Promise<T> {
-  return new Promise((resolve) => setTimeout(() => resolve(value), ms));
+  if (SIMULATE_LATENCY) {
+    return new Promise((resolve) => setTimeout(() => resolve(value), ms));
+  }
+  return Promise.resolve(value);
 }
 
 let idCounter = 1000;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MessageCircle, Variable } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -17,7 +17,7 @@ import {
   resetTemplate,
 } from "@/services/templateService";
 import { WHATSAPP_NUMBER } from "@/config/app";
-import type { MessageTemplate, MessageTemplateKey } from "@/types";
+import type { MessageTemplate } from "@/types";
 
 const previewCtx: TemplateContext = {
   name: "נועה",
@@ -30,47 +30,10 @@ const previewCtx: TemplateContext = {
 
 export default function MessagesPage() {
   const [templates, setTemplates] = useState<MessageTemplate[] | null>(null);
-  const [drafts, setDrafts] = useState<Record<MessageTemplateKey, string>>(
-    {} as Record<MessageTemplateKey, string>,
-  );
-  const [savingKey, setSavingKey] = useState<MessageTemplateKey | null>(null);
-  const [savedKey, setSavedKey] = useState<MessageTemplateKey | null>(null);
 
   useEffect(() => {
-    listTemplates().then((list) => {
-      setTemplates(list);
-      setDrafts(
-        Object.fromEntries(list.map((t) => [t.key, t.body])) as Record<
-          MessageTemplateKey,
-          string
-        >,
-      );
-    });
+    listTemplates().then(setTemplates);
   }, []);
-
-  function handleChange(key: MessageTemplateKey, value: string) {
-    setDrafts((prev) => ({ ...prev, [key]: value }));
-  }
-
-  async function handleSave(key: MessageTemplateKey) {
-    setSavingKey(key);
-    try {
-      await updateTemplate(key, drafts[key] ?? "");
-      setSavedKey(key);
-      setTimeout(() => {
-        setSavedKey((current) => (current === key ? null : current));
-      }, 1800);
-    } finally {
-      setSavingKey((current) => (current === key ? null : current));
-    }
-  }
-
-  async function handleReset(key: MessageTemplateKey) {
-    const tpl = await resetTemplate(key);
-    if (tpl) {
-      setDrafts((prev) => ({ ...prev, [key]: tpl.body }));
-    }
-  }
 
   return (
     <div>
@@ -118,77 +81,108 @@ export default function MessagesPage() {
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          {templates.map((tpl) => {
-            const body = drafts[tpl.key] ?? tpl.body;
-            const resolved = resolveTemplate(body, previewCtx);
-            const isSaving = savingKey === tpl.key;
-            const isSaved = savedKey === tpl.key;
-
-            return (
-              <Card key={tpl.key}>
-                <CardHeader>
-                  <CardTitle>{tpl.title}</CardTitle>
-                  <code className="font-mono text-xs text-[var(--rf-text-muted)]">
-                    {tpl.key}
-                  </code>
-                </CardHeader>
-
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <Field label="תוכן ההודעה" htmlFor={`tpl-${tpl.key}`}>
-                    <TextArea
-                      id={`tpl-${tpl.key}`}
-                      rows={5}
-                      value={body}
-                      onChange={(e) => handleChange(tpl.key, e.target.value)}
-                    />
-                  </Field>
-
-                  <div className="flex flex-col gap-1.5">
-                    <span className="text-sm font-medium text-[var(--rf-text)]">
-                      תצוגה מקדימה
-                    </span>
-                    <div className="whitespace-pre-wrap rounded-2xl border border-[color-mix(in_srgb,var(--rf-success)_30%,transparent)] bg-[color-mix(in_srgb,var(--rf-success)_7%,transparent)] px-4 py-3 text-sm leading-relaxed text-[var(--rf-text)]">
-                      {resolved}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4 flex flex-wrap items-center gap-2">
-                  <Button
-                    variant="gradient"
-                    size="sm"
-                    onClick={() => handleSave(tpl.key)}
-                    disabled={isSaving}
-                  >
-                    {isSaving ? "שומר…" : isSaved ? "נשמר" : "שמירה"}
-                  </Button>
-
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleReset(tpl.key)}
-                  >
-                    איפוס לברירת מחדל
-                  </Button>
-
-                  <CopyButton value={resolved} label="העתקה" />
-
-                  <Button variant="outline" size="sm" asChild>
-                    <a
-                      href={whatsappLink(WHATSAPP_NUMBER, resolved)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <MessageCircle size={15} />
-                      פתח בוואטסאפ
-                    </a>
-                  </Button>
-                </div>
-              </Card>
-            );
-          })}
+          {templates.map((tpl) => (
+            <TemplateRow key={tpl.key} template={tpl} />
+          ))}
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * A single editable template. Owns its own draft so typing in one template only
+ * re-renders that row, and the preview is memoised so `resolveTemplate` runs
+ * only when this row's body actually changes — not for every template on every
+ * keystroke across the page.
+ */
+function TemplateRow({ template }: { template: MessageTemplate }) {
+  const [body, setBody] = useState(template.body);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  useEffect(() => {
+    return () => {
+      if (savedTimer.current) clearTimeout(savedTimer.current);
+    };
+  }, []);
+
+  const resolved = useMemo(() => resolveTemplate(body, previewCtx), [body]);
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      await updateTemplate(template.key, body);
+      setSaved(true);
+      if (savedTimer.current) clearTimeout(savedTimer.current);
+      savedTimer.current = setTimeout(() => setSaved(false), 1800);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleReset() {
+    const tpl = await resetTemplate(template.key);
+    if (tpl) setBody(tpl.body);
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{template.title}</CardTitle>
+        <code className="font-mono text-xs text-[var(--rf-text-muted)]">
+          {template.key}
+        </code>
+      </CardHeader>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Field label="תוכן ההודעה" htmlFor={`tpl-${template.key}`}>
+          <TextArea
+            id={`tpl-${template.key}`}
+            rows={5}
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+          />
+        </Field>
+
+        <div className="flex flex-col gap-1.5">
+          <span className="text-sm font-medium text-[var(--rf-text)]">
+            תצוגה מקדימה
+          </span>
+          <div className="whitespace-pre-wrap rounded-2xl border border-[color-mix(in_srgb,var(--rf-success)_30%,transparent)] bg-[color-mix(in_srgb,var(--rf-success)_7%,transparent)] px-4 py-3 text-sm leading-relaxed text-[var(--rf-text)]">
+            {resolved}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <Button
+          variant="gradient"
+          size="sm"
+          onClick={handleSave}
+          disabled={saving}
+        >
+          {saving ? "שומר…" : saved ? "נשמר" : "שמירה"}
+        </Button>
+
+        <Button variant="ghost" size="sm" onClick={handleReset}>
+          איפוס לברירת מחדל
+        </Button>
+
+        <CopyButton value={resolved} label="העתקה" />
+
+        <Button variant="outline" size="sm" asChild>
+          <a
+            href={whatsappLink(WHATSAPP_NUMBER, resolved)}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <MessageCircle size={15} />
+            פתח בוואטסאפ
+          </a>
+        </Button>
+      </div>
+    </Card>
   );
 }
