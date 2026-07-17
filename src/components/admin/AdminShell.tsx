@@ -25,6 +25,7 @@ import {
 import { MobileNav } from "./MobileNav";
 import { cn } from "@/lib/utils";
 import { isAuthed, logout } from "@/lib/auth";
+import { runMockDataMigration } from "@/services/mockDataVersion";
 import { DEFAULT_SETTINGS } from "@/config/settings";
 import { USE_MOCK_DATA } from "@/config/app";
 
@@ -57,6 +58,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [ready, setReady] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Retire any legacy demo-candidate storage exactly once per browser.
+  useEffect(() => {
+    runMockDataMigration();
+  }, []);
 
   // Client-side auth gate (mock). Real auth should also use middleware + RLS.
   // Syncs the ready flag from an external system (localStorage), which is the

@@ -1,5 +1,7 @@
 /* ReferralFlow service worker — minimal offline support. */
-const CACHE = "referralflow-v1";
+/* Bumped to v2 to evict bundles cached from the demo-candidate build. The
+   activate handler deletes every cache whose name is not the current one. */
+const CACHE = "referralflow-v2";
 const OFFLINE_URL = "/offline";
 const PRECACHE = [OFFLINE_URL, "/manifest.webmanifest", "/icons/icon.svg"];
 

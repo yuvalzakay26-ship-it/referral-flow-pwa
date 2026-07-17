@@ -70,6 +70,25 @@ function readParams(sp: URLSearchParams): {
   return { filters, sort };
 }
 
+/**
+ * True when the view is narrowed by any filter. Lets an empty result distinguish
+ * "nothing matches this search" from "the database has no candidates yet".
+ */
+function hasActiveFilters(f: Filters): boolean {
+  return (
+    Boolean(f.search) ||
+    Boolean(f.fromDate) ||
+    Boolean(f.toDate) ||
+    f.status !== "all" ||
+    f.field !== "all" ||
+    f.source !== "all" ||
+    f.eligibility !== "all" ||
+    f.bonus !== "all" ||
+    f.employmentType !== "all" ||
+    f.followUp !== "all"
+  );
+}
+
 function CandidatesView() {
   const searchParams = useSearchParams();
   // Initialize from URL once on mount; subsequent changes are user-driven.
@@ -112,14 +131,19 @@ function CandidatesView() {
   }
 
   const count = candidates?.length ?? 0;
+  const filtered = hasActiveFilters(filters);
+
+  let description: string;
+  if (!candidates) description = "טוען מועמדים...";
+  else if (filtered) description = `${count} מועמדים תואמים לסינון`;
+  else if (count === 0) description = "המאגר ריק";
+  else description = `${count} מועמדים במאגר`;
 
   return (
     <div>
       <PageHeader
         title="מועמדים"
-        description={
-          candidates ? `${count} מועמדים תואמים לסינון` : "טוען מועמדים..."
-        }
+        description={description}
         actions={
           <Button variant="gradient" asChild>
             <Link href="/admin/candidates/new">
@@ -152,11 +176,27 @@ function CandidatesView() {
             ))}
           </div>
         ) : count === 0 ? (
-          <EmptyState
-            icon={filters.search || filters.status !== "all" ? SlidersHorizontal : Users}
-            title="לא נמצאו מועמדים"
-            description="נסו לשנות את מסנני החיפוש או לנקות אותם."
-          />
+          filtered ? (
+            <EmptyState
+              icon={SlidersHorizontal}
+              title="לא נמצאו מועמדים"
+              description="נסו לשנות את מסנני החיפוש או לנקות אותם."
+            />
+          ) : (
+            <EmptyState
+              icon={Users}
+              title="אין מועמדים עדיין"
+              description="הוסף את המועמד הראשון כדי להתחיל לנהל הפניות ומעקבים."
+              action={
+                <Button variant="gradient" asChild>
+                  <Link href="/admin/candidates/new">
+                    <UserPlus size={18} />
+                    הוספת מועמד
+                  </Link>
+                </Button>
+              }
+            />
+          )
         ) : (
           <>
             <CandidateTable candidates={candidates} onSort={toggleSort} />

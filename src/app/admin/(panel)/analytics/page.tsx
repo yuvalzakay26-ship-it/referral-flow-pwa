@@ -41,6 +41,9 @@ export default function AnalyticsPage() {
   }, []);
 
   const loading = !stats;
+  // With no candidates every chart would be an empty frame or a zeroed donut,
+  // which reads as broken rather than empty. Show why instead.
+  const noData = !loading && stats.total === 0;
 
   const statusCount = (s: CandidateStatus) =>
     stats?.byStatus.find((x) => x.status === s)?.count ?? 0;
@@ -63,6 +66,8 @@ export default function AnalyticsPage() {
         </CardHeader>
         {loading ? (
           <Skeleton className="h-56 w-full" />
+        ) : noData ? (
+          <ChartEmpty text="פילוח הסטטוסים יופיע כאן אחרי הוספת המועמד הראשון." />
         ) : (
           <>
             <ol className="flex flex-col">
@@ -155,6 +160,8 @@ export default function AnalyticsPage() {
               <Skeleton key={i} className="h-8 w-full" />
             ))}
           </div>
+        ) : noData ? (
+          <ChartEmpty text="הפילוח לפי תחום מקצועי יופיע כאן אחרי הוספת מועמדים." />
         ) : (
           <BarList
             data={[
@@ -178,6 +185,8 @@ export default function AnalyticsPage() {
         </CardHeader>
         {loading ? (
           <Skeleton className="h-40 w-full" />
+        ) : noData ? (
+          <ChartEmpty text="מקורות ההגעה יופיעו כאן אחרי הוספת מועמדים." />
         ) : (
           <DonutChart
             data={stats.bySource.map((s) => ({
@@ -225,6 +234,16 @@ export default function AnalyticsPage() {
           </div>
         )}
       </Card>
+    </div>
+  );
+}
+
+/** Placeholder shown in a chart card while there is nothing to plot. */
+function ChartEmpty({ text }: { text: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-white/10 px-4 py-10 text-center">
+      <Icon name="BarChart3" size={22} className="mb-3 text-[var(--rf-text-muted)]" />
+      <p className="max-w-xs text-sm text-[var(--rf-text-muted)]">{text}</p>
     </div>
   );
 }

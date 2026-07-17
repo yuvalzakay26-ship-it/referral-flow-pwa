@@ -154,6 +154,24 @@ export default function DashboardPage() {
               <Skeleton key={i} className="h-16 w-full rounded-2xl" />
             ))}
           </div>
+        ) : stats.recentCandidates.length === 0 ? (
+          <div className="glass flex flex-col items-center gap-3 rounded-2xl px-4 py-7 text-center">
+            <span
+              className="flex h-11 w-11 items-center justify-center rounded-2xl"
+              style={{ background: "var(--rf-gradient-soft)" }}
+            >
+              <Users size={20} className="text-[var(--rf-text-muted)]" />
+            </span>
+            <p className="text-sm text-[var(--rf-text-muted)]">
+              עדיין לא נוספו מועמדים למערכת.
+            </p>
+            <Link
+              href="/admin/candidates/new"
+              className="btn-gradient inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold focus-ring"
+            >
+              + הוספת מועמד ראשון
+            </Link>
+          </div>
         ) : (
           <ul className="flex flex-col gap-2">
             {stats.recentCandidates.slice(0, 4).map((c) => (

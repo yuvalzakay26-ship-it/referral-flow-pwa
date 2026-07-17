@@ -74,12 +74,14 @@ export function DonutChart({
   data: ChartDatum[];
   size?: number;
 }) {
-  const total = data.reduce((s, d) => s + d.value, 0) || 1;
+  const total = data.reduce((s, d) => s + d.value, 0);
+  // Separate from `total`: guards the division without inflating the displayed count.
+  const span = total || 1;
   const stops = data
     .map((d, i) => {
       const prev = data.slice(0, i).reduce((s, x) => s + x.value, 0);
-      const start = (prev / total) * 360;
-      const end = ((prev + d.value) / total) * 360;
+      const start = (prev / span) * 360;
+      const end = ((prev + d.value) / span) * 360;
       return `${PALETTE[i % PALETTE.length]} ${start}deg ${end}deg`;
     })
     .join(", ");
