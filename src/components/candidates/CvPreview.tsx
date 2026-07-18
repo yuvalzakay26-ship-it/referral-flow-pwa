@@ -10,10 +10,17 @@ import {
   RefreshCw,
   FileWarning,
   FileText,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { getSignedCvUrl } from "@/services/cvService";
 import type { Candidate } from "@/types";
+import type {
+  PDFDocumentProxy,
+  PDFDocumentLoadingTask,
+  RenderTask,
+} from "pdfjs-dist";
 
 const WORD_MESSAGE =
   "לא ניתן להציג קובץ Word ישירות במערכת. ניתן להוריד ולפתוח אותו במכשיר.";
@@ -21,9 +28,9 @@ const WORD_MESSAGE =
 type CvKind = "pdf" | "word" | "none";
 
 /**
- * Decide how a stored CV can be previewed in-app. Only PDFs render natively;
- * Word documents are download-only (never sent to an external viewer), and a
- * missing file cannot be previewed at all.
+ * Decide how a stored CV can be previewed in-app. Only PDFs render in-app (via
+ * PDF.js); Word documents are download-only (never sent to an external viewer),
+ * and a missing file cannot be previewed at all.
  */
 function cvKind(
   candidate: Pick<Candidate, "cv_file_name" | "cv_mime_type">,
@@ -36,22 +43,43 @@ function cvKind(
 }
 
 /**
- * PDF viewer sub-state. The signed URL itself is never held here — only the
- * short-lived, same-origin blob URL used by the iframe, so the modal can revoke
- * it from memory on close.
+ * Lazily load pdfjs-dist (kept out of the main app bundles) and point it at the
+ * self-hosted worker served from /public — no external/CDN dependency. Cached
+ * so the library and worker are only set up once per session.
+ */
+let pdfjsPromise: Promise<typeof import("pdfjs-dist")> | null = null;
+function loadPdfjs() {
+  if (!pdfjsPromise) {
+    pdfjsPromise = import("pdfjs-dist").then((pdfjs) => {
+      pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+      return pdfjs;
+    });
+  }
+  return pdfjsPromise;
+}
+
+const ZOOM_MIN = 0.5;
+const ZOOM_MAX = 3;
+const ZOOM_STEP = 0.25;
+
+/**
+ * PDF viewer sub-state. The signed URL is never held here — only whether the
+ * fetched PDF blob (kept in a ref) is ready to hand to PDF.js. The blob URL used
+ * for download / open-in-new-tab lives in a ref and is revoked on close.
  */
 type ViewerState =
   | { status: "loading" }
-  | { status: "ready"; url: string }
-  | { status: "error"; kind: "generate" | "expired" | "missing" };
+  | { status: "ready"; blob: Blob }
+  | { status: "error"; kind: "generate" | "expired" | "missing" | "render" };
 
 /**
  * Secure in-app CV viewer. Renders a prominent "view CV" action alongside the
  * existing download flow. On open it mints a fresh, short-lived signed Supabase
- * Storage URL, fetches the object into a same-origin blob, and renders it with
- * the browser's native PDF engine inside an iframe. The signed URL is never
- * stored (DB/localStorage/DOM) and the blob URL is revoked when the modal
- * closes. Word files are download-only and never sent to an external viewer.
+ * Storage URL, fetches the object into a same-origin blob, and renders the PDF
+ * in-app with PDF.js (canvas) — never the browser's native PDF plugin, which is
+ * unreliable inside iframes on mobile. The signed URL is never stored
+ * (DB/localStorage/DOM) and the blob URL is revoked when the modal closes. Word
+ * files are download-only and never sent to an external viewer.
  */
 export function CvPreview({ candidate }: { candidate: Candidate }) {
   const kind = cvKind(candidate);
@@ -69,7 +97,8 @@ export function CvPreview({ candidate }: { candidate: Candidate }) {
     }
   }, []);
 
-  // Request a fresh signed URL, fetch the file into a blob, and render it.
+  // Request a fresh signed URL, fetch the file into a blob, and hand it to the
+  // in-app PDF.js viewer.
   const loadPdf = useCallback(async () => {
     revoke();
     setState({ status: "loading" });
@@ -97,9 +126,8 @@ export function CvPreview({ candidate }: { candidate: Candidate }) {
         raw.type === "application/pdf"
           ? raw
           : new Blob([raw], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      blobUrlRef.current = url;
-      setState({ status: "ready", url });
+      blobUrlRef.current = URL.createObjectURL(blob);
+      setState({ status: "ready", blob });
     } catch {
       setState({ status: "error", kind: "expired" });
     }
@@ -119,6 +147,10 @@ export function CvPreview({ candidate }: { candidate: Candidate }) {
     revoke();
     setState({ status: "loading" });
   }, [revoke]);
+
+  const handleRenderFailure = useCallback(() => {
+    setState({ status: "error", kind: "render" });
+  }, []);
 
   // Enter transition + Escape-to-close + scroll lock while open.
   useEffect(() => {
@@ -171,6 +203,7 @@ export function CvPreview({ candidate }: { candidate: Candidate }) {
   }
 
   const canPreview = kind !== "none";
+  const pdfReady = kind === "pdf" && state.status === "ready";
 
   return (
     <>
@@ -215,7 +248,7 @@ export function CvPreview({ candidate }: { candidate: Candidate }) {
                 </h3>
               </div>
               <div className="flex flex-none items-center gap-1.5">
-                {kind === "pdf" && state.status === "ready" && (
+                {pdfReady && (
                   <button
                     type="button"
                     onClick={openInNewTab}
@@ -229,11 +262,7 @@ export function CvPreview({ candidate }: { candidate: Candidate }) {
                 )}
                 <button
                   type="button"
-                  onClick={
-                    kind === "pdf" && state.status === "ready"
-                      ? downloadBlob
-                      : downloadViaSignedUrl
-                  }
+                  onClick={pdfReady ? downloadBlob : downloadViaSignedUrl}
                   disabled={wordBusy}
                   aria-label="הורדה"
                   title="הורדה"
@@ -288,22 +317,33 @@ export function CvPreview({ candidate }: { candidate: Candidate }) {
                   <p className="text-sm">טוען תצוגה מקדימה…</p>
                 </div>
               ) : state.status === "ready" ? (
-                <iframe
-                  src={state.url}
-                  title="תצוגת קורות חיים"
-                  className="h-full w-full border-0 bg-white"
+                <PdfDocumentView
+                  blob={state.blob}
+                  onFailure={handleRenderFailure}
                 />
-              ) : state.kind === "missing" ? (
+              ) : state.status === "error" && state.kind === "missing" ? (
                 <ViewerMessage
                   icon={FileWarning}
                   title="הקובץ אינו זמין"
                   message="קובץ קורות החיים אינו זמין כעת."
                 />
-              ) : state.kind === "generate" ? (
+              ) : state.status === "error" && state.kind === "generate" ? (
                 <ViewerMessage
                   icon={FileWarning}
                   title="יצירת הקישור נכשלה"
                   message="לא ניתן היה ליצור קישור מאובטח לצפייה."
+                  action={
+                    <Button variant="gradient" onClick={() => void loadPdf()}>
+                      <RefreshCw size={16} />
+                      נסו שוב
+                    </Button>
+                  }
+                />
+              ) : state.status === "error" && state.kind === "render" ? (
+                <ViewerMessage
+                  icon={FileWarning}
+                  title="טעינת התצוגה נכשלה"
+                  message="לא ניתן היה להציג את הקובץ. ניתן לנסות שוב או להוריד אותו."
                   action={
                     <Button variant="gradient" onClick={() => void loadPdf()}>
                       <RefreshCw size={16} />
@@ -329,6 +369,177 @@ export function CvPreview({ candidate }: { candidate: Candidate }) {
         </div>
       )}
     </>
+  );
+}
+
+/**
+ * In-app PDF renderer built on PDF.js. Fetches nothing itself — it renders the
+ * already-fetched, private blob to <canvas> elements (one per page), fit to the
+ * container width by default, with all pages scrollable and simple zoom
+ * controls. No native PDF plugin / iframe, so mobile never shows the broken
+ * native "open" placeholder.
+ */
+function PdfDocumentView({
+  blob,
+  onFailure,
+}: {
+  blob: Blob;
+  onFailure: () => void;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const canvasesRef = useRef<Array<HTMLCanvasElement | null>>([]);
+  const docRef = useRef<PDFDocumentProxy | null>(null);
+  const loadingTaskRef = useRef<PDFDocumentLoadingTask | null>(null);
+  const [numPages, setNumPages] = useState(0);
+  const [zoom, setZoom] = useState(1);
+  const [phase, setPhase] = useState<"loading" | "ready" | "error">("loading");
+  const [width, setWidth] = useState(0);
+
+  // Load the document once from the in-memory blob.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const pdfjs = await loadPdfjs();
+        const data = await blob.arrayBuffer();
+        if (cancelled) return;
+        const task = pdfjs.getDocument({ data });
+        loadingTaskRef.current = task;
+        const doc = await task.promise;
+        if (cancelled) return;
+        docRef.current = doc;
+        canvasesRef.current = new Array(doc.numPages).fill(null);
+        setNumPages(doc.numPages);
+        setPhase("ready");
+      } catch {
+        if (!cancelled) {
+          setPhase("error");
+          onFailure();
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+      const task = loadingTaskRef.current;
+      loadingTaskRef.current = null;
+      docRef.current = null;
+      // Destroying the loading task aborts work and tears down the worker.
+      if (task) void task.destroy();
+    };
+  }, [blob, onFailure]);
+
+  // Track the scroll container width so pages fit to width (and re-fit on
+  // rotation / resize).
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const measure = () => setWidth(el.clientWidth);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [phase]);
+
+  // Render every page whenever the document, zoom, or available width changes.
+  useEffect(() => {
+    const doc = docRef.current;
+    if (phase !== "ready" || !doc || width === 0) return;
+    let cancelled = false;
+    const tasks: RenderTask[] = [];
+    (async () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      for (let i = 1; i <= doc.numPages; i++) {
+        if (cancelled) return;
+        const canvas = canvasesRef.current[i - 1];
+        if (!canvas) continue;
+        const page = await doc.getPage(i);
+        if (cancelled) return;
+        const base = page.getViewport({ scale: 1 });
+        // Fit the page to the container width, then apply the zoom multiplier.
+        const cssWidth = Math.max(1, (width - 24) * zoom);
+        const cssScale = cssWidth / base.width;
+        const viewport = page.getViewport({ scale: cssScale * dpr });
+        canvas.width = Math.floor(viewport.width);
+        canvas.height = Math.floor(viewport.height);
+        canvas.style.width = `${Math.floor(cssWidth)}px`;
+        canvas.style.height = `${Math.floor(viewport.height / dpr)}px`;
+        const task = page.render({ canvas, viewport });
+        tasks.push(task);
+        try {
+          await task.promise;
+        } catch {
+          /* render cancelled by a newer zoom/resize pass */
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+      tasks.forEach((t) => t.cancel());
+    };
+  }, [phase, zoom, width, numPages]);
+
+  const zoomOut = () =>
+    setZoom((z) => Math.max(ZOOM_MIN, Math.round((z - ZOOM_STEP) * 100) / 100));
+  const zoomIn = () =>
+    setZoom((z) => Math.min(ZOOM_MAX, Math.round((z + ZOOM_STEP) * 100) / 100));
+
+  return (
+    <div className="absolute inset-0">
+      <div
+        ref={scrollRef}
+        className="h-full w-full overflow-auto overscroll-contain"
+        dir="ltr"
+      >
+        <div className="flex flex-col items-center gap-3 p-3">
+          {Array.from({ length: numPages }).map((_, i) => (
+            <canvas
+              key={i}
+              ref={(el) => {
+                canvasesRef.current[i] = el;
+              }}
+              className="max-w-full rounded-lg bg-white shadow-md"
+            />
+          ))}
+        </div>
+      </div>
+
+      {phase !== "ready" && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-[var(--rf-text-muted)]">
+          <Loader2 size={28} className="animate-spin" />
+          <p className="text-sm">טוען תצוגה מקדימה…</p>
+        </div>
+      )}
+
+      {phase === "ready" && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center">
+          <div className="glass-elevated pointer-events-auto flex items-center gap-1 rounded-full p-1 shadow-lg">
+            <button
+              type="button"
+              onClick={zoomOut}
+              disabled={zoom <= ZOOM_MIN}
+              aria-label="הקטנה"
+              title="הקטנה"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--rf-text)] hover:bg-[var(--hover-background)] focus-ring disabled:opacity-40"
+            >
+              <ZoomOut size={18} />
+            </button>
+            <span className="min-w-12 text-center text-xs font-semibold tabular-nums text-[var(--rf-text)]">
+              {Math.round(zoom * 100)}%
+            </span>
+            <button
+              type="button"
+              onClick={zoomIn}
+              disabled={zoom >= ZOOM_MAX}
+              aria-label="הגדלה"
+              title="הגדלה"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--rf-text)] hover:bg-[var(--hover-background)] focus-ring disabled:opacity-40"
+            >
+              <ZoomIn size={18} />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

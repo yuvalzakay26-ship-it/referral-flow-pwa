@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Static assets served as-is (e.g. the copied pdf.js worker).
+    "public/**",
     // Standalone Node test files (run via `node --test`, not built by Next).
     "**/*.test.ts",
     "**/*.test.tsx",
