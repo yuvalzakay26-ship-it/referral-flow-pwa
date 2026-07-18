@@ -21,7 +21,7 @@
  */
 
 import { THEME_STORAGE_KEY } from "@/lib/theme";
-import { SETTINGS_STORAGE_KEY } from "./settingsService";
+import { SETTINGS_STORAGE_KEY } from "@/lib/settingsStore";
 
 const VERSION_KEY = "referralflow_mock_data_version";
 

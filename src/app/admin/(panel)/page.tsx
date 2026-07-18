@@ -23,7 +23,8 @@ import { MockModeBanner } from "@/components/admin/MockModeBanner";
 import { StatusBadge } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { FollowUpList } from "@/components/admin/FollowUpList";
-import { getDashboardStats, type DashboardStats } from "@/services/statsService";
+import { getDashboardStats } from "@/services/statsService";
+import type { DashboardStats } from "@/services/statsService.types";
 import { formatDate } from "@/lib/utils";
 
 const ACCEPTED_FILTER = "accepted,bonus_pending,bonus_received";

@@ -1,36 +1,49 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Lock, LogIn } from "lucide-react";
 import { LogoMark } from "@/components/ui/Logo";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Field, TextInput } from "@/components/ui/Field";
 import { AnimatedBackground } from "@/components/ui/AnimatedBackground";
-import { isAuthed, login } from "@/lib/auth";
-import { USE_MOCK_DATA } from "@/config/app";
+import { signInOwner } from "@/lib/auth-actions";
 
 export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (isAuthed()) router.replace("/admin");
-  }, [router]);
-
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    const ok = login(email, password);
-    if (ok) {
-      router.replace("/admin");
-    } else {
-      setError("פרטי התחברות שגויים.");
+    try {
+      const result = await signInOwner(email, password);
+      if (result.ok) {
+        // Return to the intended route when it is a safe in-app path.
+        const next = searchParams.get("next");
+        const dest = next && next.startsWith("/") ? next : "/admin";
+        router.replace(dest);
+        router.refresh();
+      } else {
+        setError(result.error ?? "פרטי התחברות שגויים.");
+        setLoading(false);
+      }
+    } catch {
+      setError("אירעה שגיאה. נסו שוב.");
       setLoading(false);
     }
   }
@@ -43,19 +56,22 @@ export default function AdminLoginPage() {
           <LogoMark size={64} />
           <h1 className="mt-4 text-2xl font-black tracking-tight">כניסת מנהל</h1>
           <p className="mt-1 text-sm text-[var(--rf-text-muted)]">
-            אזור ניהול ReferralFlow
+            כניסה פרטית לבעל המערכת
           </p>
         </div>
 
         <Card variant="elevated">
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <Field label="שם משתמש / אימייל" htmlFor="email">
+            <Field label="אימייל" htmlFor="email">
               <TextInput
                 id="email"
+                type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin"
+                placeholder="you@example.com"
                 autoComplete="username"
+                dir="ltr"
+                required
               />
             </Field>
             <Field label="סיסמה" htmlFor="password" error={error ?? undefined}>
@@ -64,8 +80,10 @@ export default function AdminLoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••"
+                placeholder="••••••••"
                 autoComplete="current-password"
+                dir="ltr"
+                required
               />
             </Field>
             <Button type="submit" variant="gradient" size="lg" disabled={loading}>
@@ -78,15 +96,12 @@ export default function AdminLoginPage() {
             </Button>
           </form>
 
-          {USE_MOCK_DATA && (
-            <div className="mt-4 flex items-start gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-3 text-xs text-[var(--rf-text-muted)]">
-              <Lock size={14} className="mt-0.5 flex-none text-[var(--rf-cyan)]" />
-              <span>
-                מצב הדגמה (Mock): התחברו עם המשתמש <b className="text-[var(--rf-text)]">admin</b> והסיסמה{" "}
-                <b className="text-[var(--rf-text)]">admin</b>.
-              </span>
-            </div>
-          )}
+          <div className="mt-4 flex items-start gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-3 text-xs text-[var(--rf-text-muted)]">
+            <Lock size={14} className="mt-0.5 flex-none text-[var(--rf-cyan)]" />
+            <span>
+              הגישה מוגבלת לבעל המערכת בלבד. אין הרשמה ואין יצירת חשבון.
+            </span>
+          </div>
         </Card>
       </div>
     </div>

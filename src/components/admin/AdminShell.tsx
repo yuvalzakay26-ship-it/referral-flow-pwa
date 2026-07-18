@@ -25,8 +25,9 @@ import {
 import { MobileNav } from "./MobileNav";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { cn } from "@/lib/utils";
-import { isAuthed, logout } from "@/lib/auth";
+import { signOutOwner } from "@/lib/auth-actions";
 import { runMockDataMigration } from "@/services/mockDataVersion";
+import { initSettings } from "@/lib/settingsStore";
 import { useSettings } from "@/lib/useSettings";
 import { USE_MOCK_DATA } from "@/config/app";
 
@@ -58,25 +59,17 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const settings = useSettings();
-  const [ready, setReady] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   // Retire any legacy demo-candidate storage exactly once per browser.
+  // Authentication itself is enforced server-side by the Proxy + RLS, so there
+  // is no client auth gate (and no auth spinner flash) here.
   useEffect(() => {
     runMockDataMigration();
+    // Load settings from the server and run the one-time browser→server
+    // migration; keeps the header greeting in sync with the saved admin name.
+    void initSettings();
   }, []);
-
-  // Client-side auth gate (mock). Real auth should also use middleware + RLS.
-  // Syncs the ready flag from an external system (localStorage), which is the
-  // legitimate exception to set-state-in-effect.
-  useEffect(() => {
-    if (!isAuthed()) {
-      router.replace("/admin/login");
-    } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setReady(true);
-    }
-  }, [router]);
 
   // Close the mobile drawer whenever the route changes.
   useEffect(() => {
@@ -84,17 +77,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     setMobileOpen(false);
   }, [pathname]);
 
-  function handleLogout() {
-    logout();
+  async function handleLogout() {
+    await signOutOwner();
     router.replace("/admin/login");
-  }
-
-  if (!ready) {
-    return (
-      <div className="flex min-h-dvh items-center justify-center">
-        <LogoMark size={56} className="animate-pulse-glow" />
-      </div>
-    );
+    router.refresh();
   }
 
   const activeHref = getActiveHref(pathname);

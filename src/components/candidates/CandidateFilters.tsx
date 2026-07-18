@@ -11,7 +11,7 @@ import type {
   CandidateFilters as Filters,
   SortKey,
   SortDir,
-} from "@/services/candidateService";
+} from "@/services/candidateService.types";
 
 interface Props {
   filters: Filters;

@@ -1,6 +1,6 @@
 /**
  * Core domain types for ReferralFlow.
- * These mirror the planned Supabase schema (see supabase/schema.sql).
+ * These are the source of truth for the Supabase schema (see supabase/migrations).
  */
 
 // ---------------------------------------------------------------------------
@@ -90,6 +90,8 @@ export interface Candidate {
   professional_summary: string;
   cv_file_name: string | null;
   cv_storage_path: string | null;
+  cv_mime_type?: string | null;
+  cv_size_bytes?: number | null;
   applied_last_12_months: YesNoUnsure;
   referred_by_another_employee: YesNoUnsure;
   contacted_recruiter_before: YesNoUnsure;

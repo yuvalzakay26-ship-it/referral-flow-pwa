@@ -21,10 +21,10 @@ import { Button } from "@/components/ui/Button";
 import { Field, TextInput, TextArea } from "@/components/ui/Field";
 import { Skeleton } from "@/components/ui/Skeleton";
 import {
-  getSettings,
   updateSettings,
   resetSettings,
 } from "@/services/settingsService";
+import { initSettings, pushSettings } from "@/lib/settingsStore";
 import {
   USE_MOCK_DATA,
   NON_OFFICIAL_NOTICE,
@@ -42,7 +42,7 @@ export default function SettingsPage() {
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
-    getSettings().then(setForm);
+    initSettings().then(setForm);
   }, []);
 
   // Clear a pending toast dismissal if the page unmounts.
@@ -65,18 +65,30 @@ export default function SettingsPage() {
   async function handleSave() {
     if (!form) return;
     setSaving(true);
-    const next = await updateSettings(form);
-    setForm(next);
-    setSaving(false);
-    showToast("ההגדרות נשמרו");
+    try {
+      const next = await updateSettings(form);
+      setForm(next);
+      pushSettings(next); // keep the header greeting in sync
+      showToast("ההגדרות נשמרו");
+    } catch {
+      showToast("שמירת ההגדרות נכשלה");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleReset() {
     setSaving(true);
-    const next = await resetSettings();
-    setForm(next);
-    setSaving(false);
-    showToast("ההגדרות אופסו");
+    try {
+      const next = await resetSettings();
+      setForm(next);
+      pushSettings(next);
+      showToast("ההגדרות אופסו");
+    } catch {
+      showToast("איפוס ההגדרות נכשל");
+    } finally {
+      setSaving(false);
+    }
   }
 
   if (!form) {

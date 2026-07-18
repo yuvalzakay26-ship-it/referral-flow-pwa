@@ -5,7 +5,7 @@ import {
   subscribeSettings,
   getSettingsSnapshot,
   getSettingsServerSnapshot,
-} from "@/services/settingsService";
+} from "@/lib/settingsStore";
 import type { AppSettings } from "@/types";
 
 /**

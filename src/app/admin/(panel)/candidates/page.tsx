@@ -12,12 +12,12 @@ import { CandidateTable } from "@/components/candidates/CandidateTable";
 import { CandidateCard } from "@/components/candidates/CandidateCard";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useMediaQuery } from "@/lib/useMediaQuery";
-import {
-  listCandidates,
-  type CandidateFilters as Filters,
-  type SortKey,
-  type SortDir,
-} from "@/services/candidateService";
+import { listCandidates } from "@/services/candidateService";
+import type {
+  CandidateFilters as Filters,
+  SortKey,
+  SortDir,
+} from "@/services/candidateService.types";
 import type { Candidate } from "@/types";
 
 const EMPTY_FILTERS: Filters = {

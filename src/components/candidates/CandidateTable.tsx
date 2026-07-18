@@ -7,7 +7,7 @@ import { getSourceMeta } from "@/config/sources";
 import { getBonusMeta } from "@/config/bonus";
 import { formatDate } from "@/lib/utils";
 import type { Candidate } from "@/types";
-import type { SortKey } from "@/services/candidateService";
+import type { SortKey } from "@/services/candidateService.types";
 
 interface Props {
   candidates: Candidate[];

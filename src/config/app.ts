@@ -11,7 +11,10 @@ export const APP_SUBTITLE = "הפניות עבודה עם יובל";
 export const USE_MOCK_DATA: boolean =
   process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true" ||
   !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-  !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  !(
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
 
 export const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -58,9 +61,3 @@ export const CV_ACCEPTED_MIME = [
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ];
-
-/** Mock admin credentials (development only). */
-export const MOCK_ADMIN = {
-  email: "admin",
-  password: "admin",
-};

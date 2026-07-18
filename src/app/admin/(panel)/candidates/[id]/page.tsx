@@ -301,7 +301,15 @@ export default function CandidateDetailsPage() {
                 <Row
                   icon={FileText}
                   label="קורות חיים"
-                  value={c.cv_file_name ?? "לא צורף"}
+                  value={
+                    c.cv_file_name
+                      ? `${c.cv_file_name}${
+                          c.cv_size_bytes
+                            ? ` · ${Math.max(1, Math.round(c.cv_size_bytes / 1024))} KB`
+                            : ""
+                        }`
+                      : "לא צורף"
+                  }
                 />
                 <Row label="משרה רלוונטית" value={c.referred_position} />
                 {c.general_category && (

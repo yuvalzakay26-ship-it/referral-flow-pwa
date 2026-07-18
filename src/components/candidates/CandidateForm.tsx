@@ -16,9 +16,11 @@ import {
   updateCandidate,
   updateCandidateStatus,
   findDuplicates,
-  type DuplicateMatch,
+  getCandidate,
 } from "@/services/candidateService";
-import { sanitizeFileName, formatIsraeliPhone } from "@/lib/utils";
+import { uploadCv, removeCv } from "@/services/cvService";
+import type { DuplicateMatch } from "@/services/candidateService.types";
+import { formatIsraeliPhone } from "@/lib/utils";
 import type { Candidate } from "@/types";
 
 import type { Values } from "./form/types";
@@ -249,11 +251,8 @@ export function CandidateForm({
   }
 
   function buildInput(values: Values) {
-    const cvName = cvFile
-      ? sanitizeFileName(cvFile.name)
-      : mode === "edit"
-        ? existingCv
-        : null;
+    // CV files are uploaded separately via the CV service (private storage);
+    // the candidate row's cv_* columns are set by that upload, not here.
     return {
       full_name: values.full_name.trim(),
       phone: values.phone.trim(),
@@ -271,7 +270,6 @@ export function CandidateForm({
       preferred_job_categories: values.preferred_job_categories,
       technical_skills: values.technical_skills,
       professional_summary: values.professional_summary.trim(),
-      cv_file_name: cvName,
       applied_last_12_months: values.applied_last_12_months,
       referred_by_another_employee: values.referred_by_another_employee,
       contacted_recruiter_before: values.contacted_recruiter_before,
@@ -304,6 +302,16 @@ export function CandidateForm({
         // derive the standing from the three referral questions at save time.
         input.eligibility_status = deriveEligibility(values) as never;
         const created = await createCandidate(input);
+        // Upload the CV (if any) to private storage after the row exists.
+        if (cvFile) {
+          try {
+            await uploadCv(created.id, cvFile);
+          } catch {
+            setServerError(
+              "המועמד נשמר אך העלאת קובץ קורות החיים נכשלה. ניתן להעלות שוב בעמוד המועמד.",
+            );
+          }
+        }
         clearDraft();
         if (andOpen) router.push(`/admin/candidates/${created.id}`);
         else router.push("/admin/candidates");
@@ -318,13 +326,16 @@ export function CandidateForm({
           DEFAULT_SETTINGS.admin_display_name,
         );
       }
-      const cvName = input.cv_file_name;
-      const updated = await updateCandidate(id, {
-        ...input,
-        cv_storage_path: cvName ? `cvs/${id}/${cvName}` : null,
-        eligibility_status: input.eligibility_status,
-      });
-      if (updated) onSaved?.(updated);
+      await updateCandidate(id, input);
+      // Apply CV changes: a newly-selected file replaces; clearing an existing
+      // CV without a replacement removes it from private storage.
+      if (cvFile) {
+        await uploadCv(id, cvFile);
+      } else if (!existingCv && initial?.cv_storage_path) {
+        await removeCv(id);
+      }
+      const fresh = await getCandidate(id);
+      if (fresh) onSaved?.(fresh);
     } catch {
       setServerError("אירעה שגיאה בשמירה. נסו שוב.");
     } finally {
