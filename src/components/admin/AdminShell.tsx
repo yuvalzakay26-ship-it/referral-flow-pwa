@@ -155,7 +155,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className="flex-1 p-4 pb-28 lg:p-8 lg:pb-8">
+        <main className="pb-mobile-nav flex-1 p-4 lg:p-8 lg:pb-8">
           {children}
         </main>
       </div>

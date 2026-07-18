@@ -22,6 +22,26 @@
   --rf-grad-4: #22d3ee;
 
   --rf-radius: 1.25rem;
+
+  /* --- Mobile fixed-chrome layout metrics --------------------------------
+     One source of truth for the heights of the fixed bottom navigation and
+     the sticky form action bars, so page padding and bar offsets always
+     agree and nothing overlaps. Heights are the rendered bar heights and
+     EXCLUDE the device safe-area inset, which is tracked separately in
+     --mobile-safe-bottom and added wherever a value must reach the true
+     viewport bottom. Values below are measured against the actual rendered
+     bars (see .mobile-nav / .mobile-action-bar). */
+  --mobile-bottom-nav-height: 3.75rem; /* solid bar of .mobile-nav (60px) */
+  --mobile-action-bar-height: 4rem;    /* sticky save/action bar (64px) */
+  --mobile-safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* Vertical stacking order for fixed page chrome. Content < action bar <
+     bottom nav is deliberately NOT the paint order: the action bar must
+     paint ABOVE the nav so its buttons are never hidden, while overlays
+     (drawer, modals) sit above everything. */
+  --z-mobile-nav: 40;
+  --z-mobile-action-bar: 45;
+  --z-overlay: 50;
 }
 
 /* --- Dark — the primary branded appearance ------------------------------ */
@@ -439,17 +459,48 @@ body::before {
     border-bottom: 1px solid var(--border-subtle);
   }
 
-  /* Fixed mobile bottom navigation — opaque, safe-area aware. */
+  /* Fixed mobile bottom navigation — opaque, safe-area aware. Its solid bar
+     is pinned to --mobile-bottom-nav-height so the sticky action bar and page
+     padding can reserve exactly this much space; the safe-area inset sits
+     below the bar. The elevated "+" action deliberately overflows above the
+     bar, so overflow is left visible. */
   .mobile-nav {
     position: fixed;
     inset-inline: 0;
     bottom: 0;
-    z-index: 40;
+    z-index: var(--z-mobile-nav);
+    height: calc(var(--mobile-bottom-nav-height) + var(--mobile-safe-bottom));
     background: var(--navigation-background);
     backdrop-filter: blur(16px) saturate(140%);
     -webkit-backdrop-filter: blur(16px) saturate(140%);
     border-top: 1px solid var(--border);
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: var(--mobile-safe-bottom);
+  }
+
+  /* Sticky mobile form action bar (שמירה / שמור ופתח / ביטול).
+     Pinned directly above the fixed bottom navigation — never behind it — and
+     painted above the nav (z 45 > 40) so its buttons stay fully visible while
+     content scrolls behind it. Opaque elevated surface with a subtle top
+     border; safe-area is already carried by the nav below it, so the offset
+     only needs the nav height + inset. Shared by every mobile save bar. */
+  .mobile-action-bar {
+    position: fixed;
+    inset-inline: 0;
+    bottom: calc(var(--mobile-bottom-nav-height) + var(--mobile-safe-bottom));
+    z-index: var(--z-mobile-action-bar);
+    border-top: 1px solid var(--glass-elevated-border);
+    background: var(--glass-elevated-bg);
+    backdrop-filter: blur(calc(var(--glass-blur) + 4px));
+    -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 4px));
+    box-shadow: var(--glass-elevated-shadow);
+  }
+
+  /* Sticky-in-flow action bar variant (e.g. settings) — rests just above the
+     fixed nav on mobile, and at a normal offset on desktop where the nav is
+     hidden. Being in flow, it never overlaps the nav, so no z-index games. */
+  .sticky-above-mobile-nav {
+    position: sticky;
+    bottom: 1rem;
   }
 
   /* Mobile side drawer surface. */
@@ -504,6 +555,36 @@ body::before {
   [data-theme="light"] .theme-icon-moon {
     opacity: 1;
     transform: none;
+  }
+}
+
+/* ==========================================================================
+   Mobile fixed-chrome clearance
+
+   Below the lg breakpoint (1024px — where the bottom nav is shown and the
+   desktop sidebar/actions are hidden) page content must reserve room so the
+   fixed nav, and any sticky action bar above it, never cover content. At and
+   above lg these add nothing, so desktop forms get no artificial bottom gap.
+   ========================================================================== */
+@media (max-width: 1023.98px) {
+  /* Any admin page: clear the fixed bottom navigation + safe area. */
+  .pb-mobile-nav {
+    padding-bottom: calc(
+      var(--mobile-bottom-nav-height) + var(--mobile-safe-bottom) + 1rem
+    );
+  }
+
+  /* A form with a sticky action bar sits inside a .pb-mobile-nav <main>, so it
+     only needs the EXTRA clearance for its own action bar on top of that. */
+  .pb-mobile-action-bar {
+    padding-bottom: var(--mobile-action-bar-height);
+  }
+
+  /* Sticky-in-flow bar: lift above the fixed nav (+ small breathing gap). */
+  .sticky-above-mobile-nav {
+    bottom: calc(
+      var(--mobile-bottom-nav-height) + var(--mobile-safe-bottom) + 0.5rem
+    );
   }
 }
 

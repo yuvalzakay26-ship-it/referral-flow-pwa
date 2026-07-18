@@ -348,7 +348,7 @@ export function CandidateForm({
     <form
       onSubmit={handleSubmit((v) => submit(v, false))}
       noValidate
-      className="pb-24 lg:pb-0"
+      className="pb-mobile-action-bar"
     >
       {/* Duplicate warning */}
       {duplicates.length > 0 && (
@@ -460,8 +460,9 @@ export function CandidateForm({
         </Button>
       </div>
 
-      {/* Sticky mobile action bar */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--border-subtle)] glass-elevated p-3 lg:hidden">
+      {/* Sticky mobile action bar — pinned above the fixed bottom nav via the
+          shared .mobile-action-bar utility (see globals.css). */}
+      <div className="mobile-action-bar p-3 lg:hidden">
         <div className="flex items-center gap-2">
           <Button
             type="button"

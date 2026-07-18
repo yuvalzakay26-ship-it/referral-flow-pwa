@@ -341,8 +341,9 @@ export default function SettingsPage() {
         </Card>
       </div>
 
-      {/* Bottom save bar */}
-      <div className="sticky bottom-4 z-10 mt-6">
+      {/* Bottom save bar — sits above the fixed mobile nav via the shared
+          .sticky-above-mobile-nav utility (see globals.css). */}
+      <div className="sticky-above-mobile-nav z-10 mt-6">
         <div className="glass-elevated flex items-center justify-between gap-3 rounded-2xl px-4 py-3">
           <div className="min-h-6">
             {saved && (
