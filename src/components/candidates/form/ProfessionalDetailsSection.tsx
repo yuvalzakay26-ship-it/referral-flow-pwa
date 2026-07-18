@@ -30,6 +30,39 @@ export function ProfessionalDetailsSection({
   isStudent,
   mode,
 }: Props) {
+  if (mode === "create") {
+    // The admin only forwards the CV; recruitment teams decide which position
+    // fits. So creation keeps just an optional general professional field —
+    // available for internal search, filters, and dashboard stats.
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>מידע מקצועי קצר</CardTitle>
+          <Briefcase size={18} className="text-[var(--rf-text-muted)]" />
+        </CardHeader>
+        <div className="flex flex-col gap-4">
+          <Field
+            label="תחום מקצועי כללי"
+            htmlFor="professional_field"
+            hint="לשימוש פנימי בלבד — חיפוש, סינון וסטטיסטיקה. לא חובה."
+          >
+            <SelectInput
+              id="professional_field"
+              {...register("professional_field")}
+            >
+              <option value="">בחרו תחום…</option>
+              {PROFESSIONAL_FIELDS.map((f) => (
+                <option key={f} value={f}>
+                  {f}
+                </option>
+              ))}
+            </SelectInput>
+          </Field>
+        </div>
+      </Card>
+    );
+  }
+
   const professionalField = (
     <Field
       label="תחום מקצועי"
@@ -49,10 +82,7 @@ export function ProfessionalDetailsSection({
   );
 
   const professionalSummary = (
-    <Field
-      label={mode === "create" ? "הערה מקצועית קצרה" : "תקציר מקצועי"}
-      htmlFor="professional_summary"
-    >
+    <Field label="תקציר מקצועי" htmlFor="professional_summary">
       <TextArea
         id="professional_summary"
         rows={3}
@@ -61,32 +91,6 @@ export function ProfessionalDetailsSection({
       />
     </Field>
   );
-
-  if (mode === "create") {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>מידע מקצועי קצר</CardTitle>
-          <Briefcase size={18} className="text-[var(--rf-text-muted)]" />
-        </CardHeader>
-        <div className="flex flex-col gap-4">
-          {professionalField}
-          <Field
-            label="מה המועמד/ת מחפש/ת?"
-            htmlFor="general_category"
-            hint="תחום או סוג משרה כללי — פרטים מלאים אפשר להשלים בהמשך."
-          >
-            <TextInput
-              id="general_category"
-              placeholder="לדוגמה: תפקידי Frontend / משרת סטודנט"
-              {...register("general_category")}
-            />
-          </Field>
-          {professionalSummary}
-        </div>
-      </Card>
-    );
-  }
 
   return (
     <Card>

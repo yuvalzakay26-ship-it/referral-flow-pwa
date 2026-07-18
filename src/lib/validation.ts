@@ -38,7 +38,9 @@ export const candidateInputSchema = z.object({
     .optional(),
   whatsapp_number: z.string().trim().optional(),
   // Professional
-  professional_field: z.string().trim().min(1, "יש לבחור תחום מקצועי"),
+  // Optional: the admin only forwards the CV; recruitment teams decide the
+  // fit. Kept available for internal search, filters, and dashboard stats.
+  professional_field: z.string().trim().optional().default(""),
   current_role: z.string().trim().optional().default(""),
   years_of_experience: z
     .number({ message: "יש להזין מספר שנים" })
