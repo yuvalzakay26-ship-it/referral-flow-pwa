@@ -17,6 +17,7 @@ import { CopyButton } from "@/components/ui/CopyButton";
 import { Modal } from "@/components/ui/Modal";
 import { Field, TextInput } from "@/components/ui/Field";
 import { StatusChangeModal } from "./StatusChangeModal";
+import { CvPreview } from "./CvPreview";
 import {
   updateCandidateStatus,
   setFollowUp,
@@ -143,6 +144,8 @@ export function CandidateActions({
         size="md"
         className="justify-center"
       />
+
+      <CvPreview candidate={candidate} />
 
       <Button
         variant="outline"
