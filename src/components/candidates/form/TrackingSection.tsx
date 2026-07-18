@@ -12,13 +12,14 @@ interface Props {
   register: UseFormRegister<Values>;
   status: string;
   bonusStatus: string;
+  mode: "create" | "edit";
 }
 
-export function TrackingSection({ register, status, bonusStatus }: Props) {
+export function TrackingSection({ register, status, bonusStatus, mode }: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>מעקב וסטטוס</CardTitle>
+        <CardTitle>{mode === "create" ? "מעקב" : "מעקב וסטטוס"}</CardTitle>
         <Target size={18} className="text-[var(--rf-text-muted)]" />
       </CardHeader>
       <div className="flex flex-col gap-4">
@@ -31,16 +32,8 @@ export function TrackingSection({ register, status, bonusStatus }: Props) {
             ))}
           </SelectInput>
         </Field>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="תאריך הפניה" htmlFor="referral_date">
-            <TextInput
-              id="referral_date"
-              type="date"
-              dir="ltr"
-              {...register("referral_date")}
-            />
-          </Field>
-          <Field label="תאריך מעקב" htmlFor="follow_up_date">
+        {mode === "create" ? (
+          <Field label="תאריך מעקב (רשות)" htmlFor="follow_up_date">
             <TextInput
               id="follow_up_date"
               type="date"
@@ -48,39 +41,60 @@ export function TrackingSection({ register, status, bonusStatus }: Props) {
               {...register("follow_up_date")}
             />
           </Field>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="סטטוס בונוס" htmlFor="bonus_status">
-            <SelectInput id="bonus_status" {...register("bonus_status")}>
-              {BONUS_STATUS_LIST.map((b) => (
-                <option key={b.value} value={b.value}>
-                  {b.label}
-                </option>
-              ))}
-            </SelectInput>
-          </Field>
-          <Field label="סכום בונוס (₪)" htmlFor="bonus_amount">
-            <TextInput
-              id="bonus_amount"
-              type="number"
-              min={0}
-              dir="ltr"
-              {...register("bonus_amount", {
-                setValueAs: (v) => (v === "" || v == null ? null : Number(v)),
-              })}
-            />
-          </Field>
-        </div>
-        {(status === "closed" ||
-          status === "not_suitable" ||
-          bonusStatus === "not_eligible") && (
-          <Field label="סיבת סגירה / דחייה" htmlFor="closure_reason">
-            <TextInput
-              id="closure_reason"
-              placeholder="לדוגמה: מצא/ה עבודה אחרת"
-              {...register("closure_reason")}
-            />
-          </Field>
+        ) : (
+          <>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="תאריך הפניה" htmlFor="referral_date">
+                <TextInput
+                  id="referral_date"
+                  type="date"
+                  dir="ltr"
+                  {...register("referral_date")}
+                />
+              </Field>
+              <Field label="תאריך מעקב" htmlFor="follow_up_date">
+                <TextInput
+                  id="follow_up_date"
+                  type="date"
+                  dir="ltr"
+                  {...register("follow_up_date")}
+                />
+              </Field>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="סטטוס בונוס" htmlFor="bonus_status">
+                <SelectInput id="bonus_status" {...register("bonus_status")}>
+                  {BONUS_STATUS_LIST.map((b) => (
+                    <option key={b.value} value={b.value}>
+                      {b.label}
+                    </option>
+                  ))}
+                </SelectInput>
+              </Field>
+              <Field label="סכום בונוס (₪)" htmlFor="bonus_amount">
+                <TextInput
+                  id="bonus_amount"
+                  type="number"
+                  min={0}
+                  dir="ltr"
+                  {...register("bonus_amount", {
+                    setValueAs: (v) => (v === "" || v == null ? null : Number(v)),
+                  })}
+                />
+              </Field>
+            </div>
+            {(status === "closed" ||
+              status === "not_suitable" ||
+              bonusStatus === "not_eligible") && (
+              <Field label="סיבת סגירה / דחייה" htmlFor="closure_reason">
+                <TextInput
+                  id="closure_reason"
+                  placeholder="לדוגמה: מצא/ה עבודה אחרת"
+                  {...register("closure_reason")}
+                />
+              </Field>
+            )}
+          </>
         )}
       </div>
     </Card>

@@ -25,6 +25,7 @@ interface Props {
   control: Control<Values>;
   errors: FieldErrors<Values>;
   getValues: UseFormGetValues<Values>;
+  mode: "create" | "edit";
   onApplyDerivedEligibility: () => void;
 }
 
@@ -32,6 +33,7 @@ export function ReferralDetailsSection({
   register,
   control,
   getValues,
+  mode,
   onApplyDerivedEligibility,
 }: Props) {
   return (
@@ -93,41 +95,53 @@ export function ReferralDetailsSection({
           </div>
         </div>
 
-        <Field label="סטטוס זכאות" htmlFor="eligibility_status">
-          <SelectInput id="eligibility_status" {...register("eligibility_status")}>
-            {Object.values(ELIGIBILITY).map((e) => (
-              <option key={e.value} value={e.value}>
-                {e.label}
-              </option>
-            ))}
-          </SelectInput>
-          <button
-            type="button"
-            onClick={onApplyDerivedEligibility}
-            className="mt-1.5 self-start text-xs font-medium text-[var(--rf-cyan)] hover:underline"
-          >
-            החלת המלצה אוטומטית (
-            {getEligibilityMeta(deriveEligibility(getValues())).label})
-          </button>
-        </Field>
+        {mode === "edit" && (
+          <Field label="סטטוס זכאות" htmlFor="eligibility_status">
+            <SelectInput id="eligibility_status" {...register("eligibility_status")}>
+              {Object.values(ELIGIBILITY).map((e) => (
+                <option key={e.value} value={e.value}>
+                  {e.label}
+                </option>
+              ))}
+            </SelectInput>
+            <button
+              type="button"
+              onClick={onApplyDerivedEligibility}
+              className="mt-1.5 self-start text-xs font-medium text-[var(--rf-cyan)] hover:underline"
+            >
+              החלת המלצה אוטומטית (
+              {getEligibilityMeta(deriveEligibility(getValues())).label})
+            </button>
+          </Field>
+        )}
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="משרה רלוונטית" htmlFor="referred_position">
+        {mode === "create" ? (
+          <Field label="משרה רלוונטית (רשות)" htmlFor="referred_position">
             <TextInput
               id="referred_position"
               placeholder="שם המשרה"
               {...register("referred_position")}
             />
           </Field>
-          <Field label="קטגוריה מקצועית כללית" htmlFor="general_category">
-            <TextInput
-              id="general_category"
-              placeholder="כשאין משרה ספציפית"
-              {...register("general_category")}
-            />
-          </Field>
-        </div>
-        <Field label="הערות פנימיות" htmlFor="internal_notes">
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="משרה רלוונטית" htmlFor="referred_position">
+              <TextInput
+                id="referred_position"
+                placeholder="שם המשרה"
+                {...register("referred_position")}
+              />
+            </Field>
+            <Field label="קטגוריה מקצועית כללית" htmlFor="general_category">
+              <TextInput
+                id="general_category"
+                placeholder="כשאין משרה ספציפית"
+                {...register("general_category")}
+              />
+            </Field>
+          </div>
+        )}
+        <Field label={mode === "create" ? "הערות פנימיות (רשות)" : "הערות פנימיות"} htmlFor="internal_notes">
           <TextArea
             id="internal_notes"
             rows={2}

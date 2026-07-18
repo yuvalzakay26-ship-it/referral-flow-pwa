@@ -298,6 +298,9 @@ export function CandidateForm({
     try {
       const input = buildInput(values);
       if (mode === "create") {
+        // The eligibility select is hidden on the simplified create form, so
+        // derive the standing from the three referral questions at save time.
+        input.eligibility_status = deriveEligibility(values) as never;
         const created = await createCandidate(input);
         clearDraft();
         if (andOpen) router.push(`/admin/candidates/${created.id}`);
@@ -388,6 +391,7 @@ export function CandidateForm({
           errors={errors}
           phoneVal={phoneVal}
           emailVal={emailVal}
+          mode={mode}
           onCheckDuplicates={checkDuplicates}
           onNormalizePhone={normalizePhoneField}
         />
@@ -397,6 +401,7 @@ export function CandidateForm({
           control={control}
           errors={errors}
           isStudent={isStudent}
+          mode={mode}
         />
 
         <ReferralDetailsSection
@@ -404,6 +409,7 @@ export function CandidateForm({
           control={control}
           errors={errors}
           getValues={getValues}
+          mode={mode}
           onApplyDerivedEligibility={applyDerivedEligibility}
         />
 
@@ -419,6 +425,7 @@ export function CandidateForm({
             register={register}
             status={status}
             bonusStatus={bonusStatus}
+            mode={mode}
           />
         </div>
       </div>

@@ -14,6 +14,7 @@ interface Props {
   errors: FieldErrors<Values>;
   phoneVal: string;
   emailVal: string;
+  mode: "create" | "edit";
   onCheckDuplicates: () => void;
   onNormalizePhone: () => void;
 }
@@ -23,13 +24,14 @@ export function PersonalDetailsSection({
   errors,
   phoneVal,
   emailVal,
+  mode,
   onCheckDuplicates,
   onNormalizePhone,
 }: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>פרטים אישיים</CardTitle>
+        <CardTitle>{mode === "create" ? "פרטים בסיסיים" : "פרטים אישיים"}</CardTitle>
         <User size={18} className="text-[var(--rf-text-muted)]" />
       </CardHeader>
       <div className="flex flex-col gap-4">
@@ -89,36 +91,47 @@ export function PersonalDetailsSection({
             <CopyButton value={emailVal} label="העתקת אימייל" />
           </div>
         </Field>
-        <div className="grid gap-4 sm:grid-cols-2">
+        {mode === "create" ? (
           <Field
-            label="עיר / אזור"
+            label="עיר / אזור (רשות)"
             htmlFor="city"
-            required
             error={errors.city?.message}
           >
             <TextInput id="city" placeholder="תל אביב" {...register("city")} />
           </Field>
-          <Field label="וואטסאפ (רשות)" htmlFor="whatsapp_number">
-            <TextInput
-              id="whatsapp_number"
-              dir="ltr"
-              placeholder="ברירת מחדל: הטלפון"
-              {...register("whatsapp_number")}
-            />
-          </Field>
-        </div>
-        <Field
-          label="קישור LinkedIn (רשות)"
-          htmlFor="linkedin_url"
-          error={errors.linkedin_url?.message}
-        >
-          <TextInput
-            id="linkedin_url"
-            dir="ltr"
-            placeholder="https://linkedin.com/in/..."
-            {...register("linkedin_url")}
-          />
-        </Field>
+        ) : (
+          <>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field
+                label="עיר / אזור"
+                htmlFor="city"
+                error={errors.city?.message}
+              >
+                <TextInput id="city" placeholder="תל אביב" {...register("city")} />
+              </Field>
+              <Field label="וואטסאפ (רשות)" htmlFor="whatsapp_number">
+                <TextInput
+                  id="whatsapp_number"
+                  dir="ltr"
+                  placeholder="ברירת מחדל: הטלפון"
+                  {...register("whatsapp_number")}
+                />
+              </Field>
+            </div>
+            <Field
+              label="קישור LinkedIn (רשות)"
+              htmlFor="linkedin_url"
+              error={errors.linkedin_url?.message}
+            >
+              <TextInput
+                id="linkedin_url"
+                dir="ltr"
+                placeholder="https://linkedin.com/in/..."
+                {...register("linkedin_url")}
+              />
+            </Field>
+          </>
+        )}
       </div>
     </Card>
   );

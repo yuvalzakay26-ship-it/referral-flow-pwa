@@ -29,7 +29,7 @@ export const candidateInputSchema = z.object({
   full_name: z.string().trim().min(2, "יש להזין שם מלא"),
   phone: israeliPhone,
   email: z.string().trim().email("כתובת אימייל לא תקינה"),
-  city: z.string().trim().min(1, "יש להזין עיר או אזור"),
+  city: z.string().trim().optional().default(""),
   linkedin_url: z
     .string()
     .trim()

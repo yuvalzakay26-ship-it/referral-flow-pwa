@@ -20,6 +20,7 @@ interface Props {
   control: Control<Values>;
   errors: FieldErrors<Values>;
   isStudent: boolean;
+  mode: "create" | "edit";
 }
 
 export function ProfessionalDetailsSection({
@@ -27,7 +28,66 @@ export function ProfessionalDetailsSection({
   control,
   errors,
   isStudent,
+  mode,
 }: Props) {
+  const professionalField = (
+    <Field
+      label="תחום מקצועי"
+      htmlFor="professional_field"
+      required
+      error={errors.professional_field?.message}
+    >
+      <SelectInput id="professional_field" {...register("professional_field")}>
+        <option value="">בחרו תחום…</option>
+        {PROFESSIONAL_FIELDS.map((f) => (
+          <option key={f} value={f}>
+            {f}
+          </option>
+        ))}
+      </SelectInput>
+    </Field>
+  );
+
+  const professionalSummary = (
+    <Field
+      label={mode === "create" ? "הערה מקצועית קצרה" : "תקציר מקצועי"}
+      htmlFor="professional_summary"
+    >
+      <TextArea
+        id="professional_summary"
+        rows={3}
+        placeholder="כמה מילים על הניסיון והשאיפות…"
+        {...register("professional_summary")}
+      />
+    </Field>
+  );
+
+  if (mode === "create") {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>מידע מקצועי קצר</CardTitle>
+          <Briefcase size={18} className="text-[var(--rf-text-muted)]" />
+        </CardHeader>
+        <div className="flex flex-col gap-4">
+          {professionalField}
+          <Field
+            label="מה המועמד/ת מחפש/ת?"
+            htmlFor="general_category"
+            hint="תחום או סוג משרה כללי — פרטים מלאים אפשר להשלים בהמשך."
+          >
+            <TextInput
+              id="general_category"
+              placeholder="לדוגמה: תפקידי Frontend / משרת סטודנט"
+              {...register("general_category")}
+            />
+          </Field>
+          {professionalSummary}
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -35,21 +95,7 @@ export function ProfessionalDetailsSection({
         <Briefcase size={18} className="text-[var(--rf-text-muted)]" />
       </CardHeader>
       <div className="flex flex-col gap-4">
-        <Field
-          label="תחום מקצועי"
-          htmlFor="professional_field"
-          required
-          error={errors.professional_field?.message}
-        >
-          <SelectInput id="professional_field" {...register("professional_field")}>
-            <option value="">בחרו תחום…</option>
-            {PROFESSIONAL_FIELDS.map((f) => (
-              <option key={f} value={f}>
-                {f}
-              </option>
-            ))}
-          </SelectInput>
-        </Field>
+        {professionalField}
         <Field label="תפקיד נוכחי" htmlFor="current_role">
           <TextInput
             id="current_role"
@@ -163,14 +209,7 @@ export function ProfessionalDetailsSection({
             )}
           />
         </Field>
-        <Field label="תקציר מקצועי" htmlFor="professional_summary">
-          <TextArea
-            id="professional_summary"
-            rows={3}
-            placeholder="כמה מילים על הניסיון והשאיפות…"
-            {...register("professional_summary")}
-          />
-        </Field>
+        {professionalSummary}
       </div>
     </Card>
   );
