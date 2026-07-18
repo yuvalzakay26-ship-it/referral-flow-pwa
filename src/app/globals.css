@@ -437,6 +437,41 @@ body::before {
     transform: translateY(1px) scale(0.99);
   }
 
+  /* Compact secondary dashboard actions — branded per instance via --sa-color.
+     Deliberately lighter than .btn-gradient so they stay visually secondary. */
+  .secondary-action {
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--sa-color) 16%, transparent),
+      color-mix(in srgb, var(--sa-color) 5%, transparent)
+    );
+    border: 1px solid color-mix(in srgb, var(--sa-color) 32%, transparent);
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--sa-color) 14%, transparent);
+    transition: transform 0.18s ease, box-shadow 0.25s ease, border-color 0.2s ease,
+      background 0.25s ease;
+  }
+  .secondary-action:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--sa-color) 48%, transparent);
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--sa-color) 26%, transparent);
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--sa-color) 24%, transparent),
+      color-mix(in srgb, var(--sa-color) 9%, transparent)
+    );
+  }
+  .secondary-action:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 2px 6px color-mix(in srgb, var(--sa-color) 16%, transparent);
+  }
+  .secondary-action .secondary-action__icon {
+    background: color-mix(in srgb, var(--sa-color) 20%, transparent);
+    transition: transform 0.18s ease;
+  }
+  .secondary-action:active .secondary-action__icon {
+    transform: scale(0.94);
+  }
+
   /* Dark: cyan halo. Light: a clean shadow — glow reads as haze on white. */
   .glow {
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--rf-cyan) 20%, transparent),

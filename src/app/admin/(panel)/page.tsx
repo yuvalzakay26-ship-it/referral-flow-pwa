@@ -55,12 +55,25 @@ export default function DashboardPage() {
           <UserPlus size={22} strokeWidth={2.4} />
           מועמד חדש
         </Link>
-        <div className="mt-3 flex items-center justify-center gap-2 text-sm">
-          <QuickLink href="/admin/candidates" icon={Users} label="כל המועמדים" />
-          <span className="text-[var(--border-strong)]">·</span>
-          <QuickLink href="/admin/jobs" icon={Briefcase} label="משרה חדשה" />
-          <span className="text-[var(--border-strong)]">·</span>
-          <QuickLink href="/admin/messages" icon={MessageSquare} label="הודעות מוכנות" />
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          <SecondaryAction
+            href="/admin/candidates"
+            icon={Users}
+            label="כל המועמדים"
+            color="var(--rf-blue)"
+          />
+          <SecondaryAction
+            href="/admin/jobs"
+            icon={Briefcase}
+            label="משרה חדשה"
+            color="var(--rf-purple)"
+          />
+          <SecondaryAction
+            href="/admin/messages"
+            icon={MessageSquare}
+            label="הודעות מוכנות"
+            color="var(--rf-magenta)"
+          />
         </div>
       </section>
 
@@ -231,22 +244,29 @@ function SectionTitle({
   );
 }
 
-function QuickLink({
+function SecondaryAction({
   href,
   icon: Icon,
   label,
+  color,
 }: {
   href: string;
   icon: LucideIcon;
   label: string;
+  color: string;
 }) {
   return (
     <Link
       href={href}
-      className="inline-flex items-center gap-1.5 rounded-lg px-1 py-0.5 text-[var(--rf-text-muted)] transition-colors hover:text-[var(--rf-text)] focus-ring"
+      style={{ "--sa-color": color } as React.CSSProperties}
+      className="secondary-action group flex flex-col items-center justify-center gap-1.5 rounded-xl px-2 py-3 text-center focus-ring"
     >
-      <Icon size={15} />
-      {label}
+      <span className="secondary-action__icon flex h-8 w-8 flex-none items-center justify-center rounded-lg">
+        <Icon size={17} style={{ color }} />
+      </span>
+      <span className="text-xs font-semibold leading-tight text-[var(--rf-text)]">
+        {label}
+      </span>
     </Link>
   );
 }
