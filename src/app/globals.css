@@ -33,6 +33,7 @@
      bars (see .mobile-nav / .mobile-action-bar). */
   --mobile-bottom-nav-height: 3.75rem; /* solid bar of .mobile-nav (60px) */
   --mobile-action-bar-height: 4rem;    /* sticky save/action bar (64px) */
+  --mobile-action-bar-gap: 0.5rem;     /* breathing gap above the nav (8px) */
   --mobile-safe-bottom: env(safe-area-inset-bottom, 0px);
 
   /* Vertical stacking order for fixed page chrome. Content < action bar <
@@ -478,21 +479,27 @@ body::before {
   }
 
   /* Sticky mobile form action bar (שמירה / שמור ופתח / ביטול).
-     Pinned directly above the fixed bottom navigation — never behind it — and
-     painted above the nav (z 45 > 40) so its buttons stay fully visible while
-     content scrolls behind it. Opaque elevated surface with a subtle top
-     border; safe-area is already carried by the nav below it, so the offset
-     only needs the nav height + inset. Shared by every mobile save bar. */
+     Pinned just above the fixed bottom navigation — never behind it — with a
+     small breathing gap so the two bars read as separate surfaces, and painted
+     above the nav (z 45 > 40) so its buttons stay fully visible while content
+     scrolls behind it. Opaque elevated surface with a subtle top border. The
+     shadow is cast UPWARD only (negative y + negative spread keep it entirely
+     above the bar) so it never bleeds down onto the navigation. Safe-area is
+     already carried by the nav below it, so the offset only needs the nav
+     height + gap + inset. Shared by every mobile save bar. */
   .mobile-action-bar {
     position: fixed;
     inset-inline: 0;
-    bottom: calc(var(--mobile-bottom-nav-height) + var(--mobile-safe-bottom));
+    bottom: calc(
+      var(--mobile-bottom-nav-height) + var(--mobile-action-bar-gap) +
+      var(--mobile-safe-bottom)
+    );
     z-index: var(--z-mobile-action-bar);
     border-top: 1px solid var(--glass-elevated-border);
     background: var(--glass-elevated-bg);
     backdrop-filter: blur(calc(var(--glass-blur) + 4px));
     -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 4px));
-    box-shadow: var(--glass-elevated-shadow);
+    box-shadow: 0 -8px 20px -12px var(--shadow-color);
   }
 
   /* Sticky-in-flow action bar variant (e.g. settings) — rests just above the
@@ -575,9 +582,12 @@ body::before {
   }
 
   /* A form with a sticky action bar sits inside a .pb-mobile-nav <main>, so it
-     only needs the EXTRA clearance for its own action bar on top of that. */
+     only needs the EXTRA clearance for its own action bar (plus the gap that
+     lifts it off the nav) on top of that. */
   .pb-mobile-action-bar {
-    padding-bottom: var(--mobile-action-bar-height);
+    padding-bottom: calc(
+      var(--mobile-action-bar-height) + var(--mobile-action-bar-gap)
+    );
   }
 
   /* Sticky-in-flow bar: lift above the fixed nav (+ small breathing gap). */
