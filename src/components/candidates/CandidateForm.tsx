@@ -8,7 +8,7 @@ import { Loader2, Save, ExternalLink, AlertTriangle } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 
-import { candidateInputSchema } from "@/lib/validation";
+import { candidateCreateSchema, candidateEditSchema } from "@/lib/validation";
 import { deriveEligibility } from "@/lib/eligibility";
 import { DEFAULT_SETTINGS } from "@/config/settings";
 import {
@@ -143,8 +143,10 @@ export function CandidateForm({
     reset,
     formState: { errors, isDirty },
   } = useForm<Values>({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(candidateInputSchema) as any,
+    resolver: zodResolver(
+      mode === "edit" ? candidateEditSchema : candidateCreateSchema,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ) as any,
     mode: "onTouched",
     defaultValues:
       mode === "edit" && initial

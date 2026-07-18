@@ -95,3 +95,17 @@ export const candidateInputSchema = z.object({
 });
 
 export type CandidateFormValues = z.infer<typeof candidateInputSchema>;
+
+// ---------------------------------------------------------------------------
+// Mode-specific schemas
+// ---------------------------------------------------------------------------
+// Create and edit share every rule except `professional_field`. On manual
+// creation the admin only forwards the CV, so the field stays optional (base
+// schema). Once a candidate exists it must be classified before saving edits,
+// so the edit schema requires it.
+
+export const candidateCreateSchema = candidateInputSchema;
+
+export const candidateEditSchema = candidateInputSchema.extend({
+  professional_field: z.string().trim().min(1, "יש לבחור תחום מקצועי"),
+});
