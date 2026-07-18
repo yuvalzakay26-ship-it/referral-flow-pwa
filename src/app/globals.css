@@ -510,6 +510,28 @@ body::before {
     bottom: 1rem;
   }
 
+  /* Floating save/reset confirmation toast (settings). Fixed and centered so it
+     lives entirely outside the action-bar flow — it can never resize the bar or
+     push its buttons. Painted above every fixed chrome (z-overlay) and, by
+     default (desktop, where the mobile nav is hidden), lifted clear of the
+     in-flow sticky settings bar. The mobile offset that also clears the fixed
+     bottom navigation is applied in the mobile-clearance media query below.
+     The container is click-through; only the pill itself takes pointer events. */
+  .settings-toast {
+    position: fixed;
+    inset-inline: 0;
+    bottom: calc(var(--mobile-safe-bottom) + 5.5rem);
+    z-index: var(--z-overlay);
+    display: flex;
+    justify-content: center;
+    padding-inline: 1rem;
+    pointer-events: none;
+  }
+  .settings-toast-pill {
+    pointer-events: auto;
+    animation: rf-toast-in 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
   /* Mobile side drawer surface. */
   .drawer-panel {
     background: var(--drawer-background);
@@ -596,6 +618,15 @@ body::before {
       var(--mobile-bottom-nav-height) + var(--mobile-safe-bottom) + 0.5rem
     );
   }
+
+  /* Toast: clear the fixed bottom navigation AND the sticky settings bar that
+     rests just above it, so it floats above both. */
+  .settings-toast {
+    bottom: calc(
+      var(--mobile-bottom-nav-height) + var(--mobile-safe-bottom) +
+      var(--mobile-action-bar-height) + 1.25rem
+    );
+  }
 }
 
 /* ==========================================================================
@@ -643,6 +674,13 @@ input::-webkit-calendar-picker-indicator {
 @keyframes rf-shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
+}
+@keyframes rf-toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .settings-toast-pill { animation: none; }
 }
 
 .animate-float { animation: rf-float 14s ease-in-out infinite; }

@@ -35,17 +35,20 @@ import type { AppSettings } from "@/types";
 export default function SettingsPage() {
   const [form, setForm] = useState<AppSettings | null>(null);
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const savedTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  // A single toast message string (or null). Because only one element is ever
+  // rendered from this one piece of state, repeated saves/resets replace the
+  // message and restart the timer instead of stacking duplicate toasts.
+  const [toast, setToast] = useState<string | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     getSettings().then(setForm);
   }, []);
 
-  // Clear a pending "saved" reset if the page unmounts.
+  // Clear a pending toast dismissal if the page unmounts.
   useEffect(() => {
     return () => {
-      if (savedTimer.current) clearTimeout(savedTimer.current);
+      if (toastTimer.current) clearTimeout(toastTimer.current);
     };
   }, []);
 
@@ -53,10 +56,10 @@ export default function SettingsPage() {
     setForm((prev) => (prev ? { ...prev, [key]: value } : prev));
   }
 
-  function flashSaved() {
-    setSaved(true);
-    if (savedTimer.current) clearTimeout(savedTimer.current);
-    savedTimer.current = setTimeout(() => setSaved(false), 2000);
+  function showToast(message: string) {
+    setToast(message);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 2500);
   }
 
   async function handleSave() {
@@ -65,7 +68,7 @@ export default function SettingsPage() {
     const next = await updateSettings(form);
     setForm(next);
     setSaving(false);
-    flashSaved();
+    showToast("ההגדרות נשמרו");
   }
 
   async function handleReset() {
@@ -73,7 +76,7 @@ export default function SettingsPage() {
     const next = await resetSettings();
     setForm(next);
     setSaving(false);
-    flashSaved();
+    showToast("ההגדרות אופסו");
   }
 
   if (!form) {
@@ -358,39 +361,42 @@ export default function SettingsPage() {
       </div>
 
       {/* Bottom save bar — sits above the fixed mobile nav via the shared
-          .sticky-above-mobile-nav utility (see globals.css). */}
+          .sticky-above-mobile-nav utility (see globals.css). Holds only the
+          action buttons; the save/reset confirmation is a floating toast below
+          so it can never resize this bar or push its buttons. */}
       <div className="sticky-above-mobile-nav z-10 mt-6">
-        <div className="glass-elevated flex items-center justify-between gap-3 rounded-2xl px-4 py-3">
-          <div className="min-h-6">
-            {saved && (
-              <span className="rf-badge badge-emerald inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium">
-                <CheckCircle2 size={14} />
-                ההגדרות נשמרו
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="md"
-              onClick={handleReset}
-              disabled={saving}
-            >
-              <RotateCcw size={16} />
-              איפוס
-            </Button>
-            <Button
-              variant="gradient"
-              size="md"
-              onClick={handleSave}
-              disabled={saving}
-            >
-              <Save size={16} />
-              שמירת הגדרות
-            </Button>
-          </div>
+        <div className="glass-elevated flex items-center justify-end gap-2 rounded-2xl px-4 py-3">
+          <Button
+            variant="ghost"
+            size="md"
+            onClick={handleReset}
+            disabled={saving}
+          >
+            <RotateCcw size={16} />
+            איפוס
+          </Button>
+          <Button
+            variant="gradient"
+            size="md"
+            onClick={handleSave}
+            disabled={saving}
+          >
+            <Save size={16} />
+            שמירת הגדרות
+          </Button>
         </div>
       </div>
+
+      {/* Floating confirmation toast — fixed, centered, and above all bottom
+          chrome; auto-dismisses after ~2.5s (see showToast + .settings-toast). */}
+      {toast && (
+        <div className="settings-toast" role="status" aria-live="polite">
+          <span className="settings-toast-pill rf-badge badge-emerald inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium shadow-lg">
+            <CheckCircle2 size={15} />
+            {toast}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
