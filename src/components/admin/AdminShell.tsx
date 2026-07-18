@@ -27,7 +27,7 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { cn } from "@/lib/utils";
 import { isAuthed, logout } from "@/lib/auth";
 import { runMockDataMigration } from "@/services/mockDataVersion";
-import { DEFAULT_SETTINGS } from "@/config/settings";
+import { useSettings } from "@/lib/useSettings";
 import { USE_MOCK_DATA } from "@/config/app";
 
 const ICONS: Record<string, LucideIcon> = {
@@ -57,6 +57,7 @@ function getActiveHref(pathname: string): string {
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const settings = useSettings();
   const [ready, setReady] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -136,7 +137,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0 leading-tight">
               <p className="truncate text-sm font-bold text-[var(--rf-text)]">
-                שלום, {DEFAULT_SETTINGS.admin_display_name} 👋
+                שלום, {settings.admin_display_name} 👋
               </p>
               <p className="truncate text-[11px] text-[var(--rf-text-muted)]">
                 אזור ניהול פרטי

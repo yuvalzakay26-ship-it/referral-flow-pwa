@@ -20,8 +20,11 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Field, TextInput, TextArea } from "@/components/ui/Field";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { getSettings, updateSettings } from "@/services/settingsService";
-import { DEFAULT_SETTINGS } from "@/config/settings";
+import {
+  getSettings,
+  updateSettings,
+  resetSettings,
+} from "@/services/settingsService";
 import {
   USE_MOCK_DATA,
   NON_OFFICIAL_NOTICE,
@@ -50,19 +53,27 @@ export default function SettingsPage() {
     setForm((prev) => (prev ? { ...prev, [key]: value } : prev));
   }
 
+  function flashSaved() {
+    setSaved(true);
+    if (savedTimer.current) clearTimeout(savedTimer.current);
+    savedTimer.current = setTimeout(() => setSaved(false), 2000);
+  }
+
   async function handleSave() {
     if (!form) return;
     setSaving(true);
     const next = await updateSettings(form);
     setForm(next);
     setSaving(false);
-    setSaved(true);
-    if (savedTimer.current) clearTimeout(savedTimer.current);
-    savedTimer.current = setTimeout(() => setSaved(false), 2000);
+    flashSaved();
   }
 
-  function handleReset() {
-    setForm({ ...DEFAULT_SETTINGS });
+  async function handleReset() {
+    setSaving(true);
+    const next = await resetSettings();
+    setForm(next);
+    setSaving(false);
+    flashSaved();
   }
 
   if (!form) {
@@ -94,7 +105,12 @@ export default function SettingsPage() {
         description="הגדרות כלליות של המערכת, ההודעות והפוסטים."
         actions={
           <>
-            <Button variant="ghost" size="md" onClick={handleReset}>
+            <Button
+              variant="ghost"
+              size="md"
+              onClick={handleReset}
+              disabled={saving}
+            >
               <RotateCcw size={16} />
               איפוס
             </Button>
@@ -354,7 +370,12 @@ export default function SettingsPage() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="md" onClick={handleReset}>
+            <Button
+              variant="ghost"
+              size="md"
+              onClick={handleReset}
+              disabled={saving}
+            >
               <RotateCcw size={16} />
               איפוס
             </Button>

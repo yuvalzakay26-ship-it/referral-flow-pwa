@@ -21,6 +21,7 @@
  */
 
 import { THEME_STORAGE_KEY } from "@/lib/theme";
+import { SETTINGS_STORAGE_KEY } from "./settingsService";
 
 const VERSION_KEY = "referralflow_mock_data_version";
 
@@ -35,6 +36,7 @@ const CURRENT_VERSION = 2;
 const PRESERVE = new Set([
   VERSION_KEY,
   THEME_STORAGE_KEY,
+  SETTINGS_STORAGE_KEY,
   "rf_admin_authed",
   "rf_new_candidate_draft",
 ]);
